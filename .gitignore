@@ -1,0 +1,19 @@
+build/
+tools/.venv/
+__pycache__/
+*.pyc
+docs/_build/
+docs/_doxygen/
+.vscode/
+
+# Local CI Simulator
+meus_artefatos/
+
+*.o
+*.a
+*.lib
+*.exe
+CMakeFiles/
+CMakeCache.txt
+cmake_install.cmake
+Makefile

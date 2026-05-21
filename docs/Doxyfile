@@ -1,0 +1,26 @@
+# Doxyfile for FastCron
+# Generates XML output consumed by Sphinx + Breathe
+
+PROJECT_NAME           = "FastCron"
+PROJECT_BRIEF          = "Ultra-fast, zero-allocation bitmask cron for embedded deep-sleep"
+PROJECT_NUMBER         = 1.0.0
+
+INPUT                  = include/
+RECURSIVE              = YES
+
+GENERATE_XML           = YES
+XML_OUTPUT             = xml
+
+GENERATE_HTML          = NO
+GENERATE_LATEX         = NO
+
+EXTRACT_ALL            = YES
+EXTRACT_STATIC         = YES
+
+OPTIMIZE_OUTPUT_FOR_C  = YES
+
+OUTPUT_DIRECTORY       = docs/_doxygen
+
+QUIET                  = YES
+WARNINGS               = YES
+WARN_IF_UNDOCUMENTED   = YES
