@@ -1,0 +1,70 @@
+name: Release Library
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  run-tests:
+    name: Run Tests from Main
+    uses: ./.github/workflows/main.yml
+
+  release:
+    name: Build & Publish Release
+    runs-on: ubuntu-latest
+    needs: run-tests
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Dependencies
+        run: sudo apt-get update && sudo apt-get install -y jq zip
+
+      - name: Verify Versions Match (Fail Fast)
+        run: |
+          # If running locally via act without GITHUB_REF_NAME being a tag, simulate one for testing
+          if [ -z "${GITHUB_REF_NAME}" ] || [[ "${GITHUB_REF_NAME}" != v* ]]; then
+            echo "Running locally via act. Simulating GITHUB_REF_NAME=v1.0.0"
+            export GITHUB_REF_NAME="v1.0.0"
+          fi
+          
+          # Extract version from tag (e.g., v1.0.0 -> 1.0.0)
+          TAG_VERSION="${GITHUB_REF_NAME#v}"
+          echo "Tag Version: $TAG_VERSION"
+          
+          # Read version from library.json
+          JSON_VERSION=$(jq -r '.version' library.json)
+          echo "library.json Version: $JSON_VERSION"
+          
+          # Read version from include/fastcron.h (looking for @version X.Y.Z)
+          HEADER_VERSION=$(grep -oP '@version\s+\K\S+' include/fastcron.h)
+          echo "fastcron.h Version: $HEADER_VERSION"
+          
+          if [ "$TAG_VERSION" != "$JSON_VERSION" ]; then
+            echo "Error: Tag version ($TAG_VERSION) does not match library.json ($JSON_VERSION)"
+            exit 1
+          fi
+          
+          if [ "$TAG_VERSION" != "$HEADER_VERSION" ]; then
+            echo "Error: Tag version ($TAG_VERSION) does not match include/fastcron.h ($HEADER_VERSION)"
+            exit 1
+          fi
+          
+          echo "All versions match!"
+
+      - name: Package Clean Library (fastcron.zip)
+        run: |
+          # Create a zip containing only the necessary distribution files
+          zip -r fastcron.zip include/ src/ library.json LICENSE
+
+      - name: Create Release and Upload Asset
+        if: ${{ !env.ACT }}
+        uses: softprops/action-gh-release@v2
+        with:
+          files: fastcron.zip
+          generate_release_notes: true

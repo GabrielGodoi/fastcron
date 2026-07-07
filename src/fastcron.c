@@ -2,7 +2,6 @@
  * @file fastcron.c
  * @brief FastCron core — pure-math bitmask cron engine, zero OS dependencies.
  * @author Gabriel Godoi
- * @version 1.0.0
  */
 
 #include "fastcron.h"
