@@ -1,0 +1,41 @@
+{
+  "name": "FastCron",
+  "version": "1.0.0",
+  "description": "Bitmask-based cron for Deep Sleep",
+  "keywords": [
+    "cron",
+    "scheduler",
+    "time",
+    "deep-sleep",
+    "embedded"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GabrielGodoi/fastcron.git"
+  },
+  "authors": [
+    {
+      "name": "Gabriel Godoi"
+    }
+  ],
+  "license": "MIT",
+  "frameworks": "*",
+  "platforms": "*",
+  "export": {
+    "include": [
+      "include/*",
+      "src/*",
+      "library.json",
+      "LICENSE"
+    ],
+    "exclude": [
+      "tests/*",
+      "docs/*",
+      "benchmarks/*",
+      "tools/*",
+      "examples/*",
+      "build/*",
+      ".github/*"
+    ]
+  }
+}

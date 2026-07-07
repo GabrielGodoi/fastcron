@@ -1,7 +1,8 @@
 /**
  * @file fastcron.h
- * @brief Ultra-fast, zero-allocation, bitmask-based cron scheduler for embedded deep-sleep.
+ * @brief Bitmask-based cron scheduler for embedded deep-sleep.
  * @author Gabriel Godoi
+ * @version 1.0.0
  *
  * Pure math, no OS dependencies, no string parsing, no dynamic memory.
  * The FastCron_t struct is populated externally (static init or transcompiler).
