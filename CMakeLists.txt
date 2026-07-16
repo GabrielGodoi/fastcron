@@ -57,6 +57,15 @@ if(FASTCRON_BUILD_TESTS)
 
     add_test(NAME FastCronTests COMMAND fastcron_tests)
 
+    add_executable(fastcron_scheduler_tests
+        tests/test_fastcron_scheduler.c
+    )
+    target_link_libraries(fastcron_scheduler_tests PRIVATE fastcron unity)
+    target_include_directories(fastcron_scheduler_tests PRIVATE
+        ${unity_SOURCE_DIR}/src
+    )
+    add_test(NAME FastCronSchedulerTests COMMAND fastcron_scheduler_tests)
+
     add_executable(fastcron_bench
         benchmarks/benchmark.c
         benchmarks/third_party/ccronexpr/ccronexpr.c

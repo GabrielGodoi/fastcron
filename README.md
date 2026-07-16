@@ -138,6 +138,44 @@ static const FastCron_t static_schedule =
 time_t next = fastcron_get_next_wakeup(&schedule, time(NULL));
 ```
 
+### 5. Array Scheduler (Multiple Crons)
+
+If you have a list of distinct crons and want to find which one(s) will trigger next, use the `fastcron_scheduler` function. It safely copies the matching crons by value into your output array.
+
+```c
+FastCron_t my_crons[3];
+// ... populate your crons ...
+
+time_t now = time(NULL);
+
+// 1. Ask the engine how many crons will trigger exactly at the next wakeup
+size_t count = fastcron_scheduler(my_crons, 3, now, NULL, 0);
+if (count == 0)
+{
+    printf("No future schedules found.\n");
+    return;
+}
+
+// 2. Allocate an array and fetch them
+FastCron_t next_schedules[count]; // Use VLA (or malloc for C90 strictness)
+size_t written = fastcron_scheduler(my_crons, 3, now, next_schedules, count);
+
+if (written > count)
+{
+    printf("Warning: Buffer was too small and output was truncated!\n");
+}
+
+// 3. Calculate the sleep time until the next event
+uint32_t sleep_sec = fastcron_sleep_s(&next_schedules[0], now);
+printf("Going to sleep for %u seconds.\n", sleep_sec);
+
+// After waking up, you can iterate `next_schedules` to run the respective tasks
+for (size_t i = 0; i < written; i++)
+{
+    // Dispatch routines bound to next_schedules[i]
+}
+```
+
 ---
 
 ## API Reference
@@ -148,6 +186,7 @@ time_t next = fastcron_get_next_wakeup(&schedule, time(NULL));
 | `fastcron_sleep_s(mask, epoch)` | Whole seconds until next event |
 | `fastcron_sleep_ms(mask, tv_sec, tv_usec)` | Milliseconds |
 | `fastcron_sleep_us(mask, tv_sec, tv_usec)` | Microseconds |
+| `fastcron_scheduler(crons, size, epoch, out, out_size)` | Finds the next triggering crons from an array |
 
 ### `FastCron_t` Bitmask Fields
 
