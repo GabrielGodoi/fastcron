@@ -319,8 +319,8 @@ uint64_t fastcron_sleep_us(const FastCron_t *mask, time_t tv_sec, uint32_t tv_us
  * @param[in]  crons          Array of bitmask schedules.
  * @param[in]  crons_size     Number of schedules in the `crons` array.
  * @param[in]  current_epoch  Current UNIX timestamp (UTC).
- * @param[out] schedules      Pointer to an array of `const FastCron_t*`. Pass NULL to just get the count.
- * @param[in]  schedules_size Maximum number of pointers that `schedules` can hold.
+ * @param[out] schedules      Array of `FastCron_t` to copy the matched crons into. Pass NULL to just get the count.
+ * @param[in]  schedules_size Maximum number of crons that `schedules` can hold.
  * @return     Total number of crons that will trigger simultaneously on the next wakeup.
  *             If return value > schedules_size, the array was truncated.
  */
@@ -328,7 +328,7 @@ size_t fastcron_scheduler(
     const FastCron_t *crons,
     size_t crons_size,
     time_t current_epoch,
-    const FastCron_t **schedules,
+    FastCron_t *schedules,
     size_t schedules_size
 );
 

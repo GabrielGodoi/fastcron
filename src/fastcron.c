@@ -355,7 +355,7 @@ size_t fastcron_scheduler(
     const FastCron_t *crons,
     size_t crons_size,
     time_t current_epoch,
-    const FastCron_t **schedules,
+    FastCron_t *schedules,
     size_t schedules_size)
 {
     if (crons == NULL || crons_size == 0)
@@ -393,7 +393,7 @@ size_t fastcron_scheduler(
         {
             if (schedules != NULL && match_count < schedules_size)
             {
-                schedules[match_count] = &crons[i];
+                schedules[match_count] = crons[i];
             }
             match_count++;
         }
