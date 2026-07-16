@@ -305,6 +305,29 @@ uint64_t fastcron_sleep_ms(const FastCron_t *mask, time_t tv_sec, uint32_t tv_us
  */
 uint64_t fastcron_sleep_us(const FastCron_t *mask, time_t tv_sec, uint32_t tv_usec);
 
+/**
+ * @brief Unified helper function to find the next cron to be executed.
+ *
+ * It iterates through an array of schedules and finds the one that triggers next.
+ * It can optionally calculate the sleep time in seconds, milliseconds, or microseconds.
+ *
+ * @param[in]  crons         Array of bitmask schedules.
+ * @param[in]  size          Number of schedules in the array.
+ * @param[in]  current_epoch Current UNIX timestamp (UTC).
+ * @param[out] sleep_s       Pointer to store the sleep time in seconds (optional, can be NULL).
+ * @param[out] sleep_ms      Pointer to store the sleep time in ms (optional, can be NULL).
+ * @param[out] sleep_us      Pointer to store the sleep time in us (optional, can be NULL).
+ * @return     Pointer to the next cron to be executed, or NULL on error or if none valid.
+ */
+const FastCron_t* fastcron_scheduler_next(
+    const FastCron_t *crons,
+    size_t size,
+    time_t current_epoch,
+    uint32_t *sleep_s,
+    uint64_t *sleep_ms,
+    uint64_t *sleep_us
+);
+
 #ifdef __cplusplus
 }
 #endif

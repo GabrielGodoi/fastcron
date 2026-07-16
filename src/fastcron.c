@@ -350,3 +350,54 @@ uint64_t fastcron_sleep_us(const FastCron_t *mask, time_t tv_sec, uint32_t tv_us
 
     return whole_us - sub_us;
 }
+
+const FastCron_t* fastcron_scheduler_next(
+    const FastCron_t *crons,
+    size_t size,
+    time_t current_epoch,
+    uint32_t *sleep_s,
+    uint64_t *sleep_ms,
+    uint64_t *sleep_us)
+{
+    if (crons == NULL || size == 0)
+    {
+        return NULL;
+    }
+
+    const FastCron_t *best_cron = NULL;
+    time_t min_wakeup = FASTCRON_ERROR_EPOCH;
+
+    for (size_t i = 0; i < size; i++)
+    {
+        time_t next = fastcron_get_next_wakeup(&crons[i], current_epoch);
+        if (next != FASTCRON_ERROR_EPOCH && next > current_epoch)
+        {
+            if (min_wakeup == FASTCRON_ERROR_EPOCH || next < min_wakeup)
+            {
+                min_wakeup = next;
+                best_cron = &crons[i];
+            }
+        }
+    }
+
+    if (best_cron != NULL)
+    {
+        if (sleep_s != NULL)
+        {
+            *sleep_s = fastcron_sleep_s(best_cron, current_epoch);
+        }
+
+        if (sleep_ms != NULL)
+        {
+            *sleep_ms = fastcron_sleep_ms(best_cron, current_epoch, 0U);
+        }
+
+        if (sleep_us != NULL)
+        {
+            *sleep_us = fastcron_sleep_us(best_cron, current_epoch, 0U);
+        }
+    }
+
+    return best_cron;
+}
+
