@@ -306,26 +306,30 @@ uint64_t fastcron_sleep_ms(const FastCron_t *mask, time_t tv_sec, uint32_t tv_us
 uint64_t fastcron_sleep_us(const FastCron_t *mask, time_t tv_sec, uint32_t tv_usec);
 
 /**
- * @brief Unified helper function to find the next cron to be executed.
+ * @brief Unified helper function to find the crons to be executed.
  *
- * It iterates through an array of schedules and finds the one that triggers next.
- * It can optionally calculate the sleep time in seconds, milliseconds, or microseconds.
+ * Finds the nearest future wakeup time across all provided schedules.
+ * If multiple schedules trigger at that exact time, they are all collected.
+ * 
+ * Usage pattern:
+ * 1. Call with `schedules = NULL` to get the number of pending crons.
+ * 2. Allocate an array of `const FastCron_t*` of that size.
+ * 3. Call again passing the allocated array and its size to populate it.
  *
- * @param[in]  crons         Array of bitmask schedules.
- * @param[in]  size          Number of schedules in the array.
- * @param[in]  current_epoch Current UNIX timestamp (UTC).
- * @param[out] sleep_s       Pointer to store the sleep time in seconds (optional, can be NULL).
- * @param[out] sleep_ms      Pointer to store the sleep time in ms (optional, can be NULL).
- * @param[out] sleep_us      Pointer to store the sleep time in us (optional, can be NULL).
- * @return     Pointer to the next cron to be executed, or NULL on error or if none valid.
+ * @param[in]  crons          Array of bitmask schedules.
+ * @param[in]  crons_size     Number of schedules in the `crons` array.
+ * @param[in]  current_epoch  Current UNIX timestamp (UTC).
+ * @param[out] schedules      Pointer to an array of `const FastCron_t*`. Pass NULL to just get the count.
+ * @param[in]  schedules_size Maximum number of pointers that `schedules` can hold.
+ * @return     Total number of crons that will trigger simultaneously on the next wakeup.
+ *             If return value > schedules_size, the array was truncated.
  */
-const FastCron_t* fastcron_scheduler_next(
+size_t fastcron_scheduler(
     const FastCron_t *crons,
-    size_t size,
+    size_t crons_size,
     time_t current_epoch,
-    uint32_t *sleep_s,
-    uint64_t *sleep_ms,
-    uint64_t *sleep_us
+    const FastCron_t **schedules,
+    size_t schedules_size
 );
 
 #ifdef __cplusplus

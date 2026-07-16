@@ -351,23 +351,22 @@ uint64_t fastcron_sleep_us(const FastCron_t *mask, time_t tv_sec, uint32_t tv_us
     return whole_us - sub_us;
 }
 
-const FastCron_t* fastcron_scheduler_next(
+size_t fastcron_scheduler(
     const FastCron_t *crons,
-    size_t size,
+    size_t crons_size,
     time_t current_epoch,
-    uint32_t *sleep_s,
-    uint64_t *sleep_ms,
-    uint64_t *sleep_us)
+    const FastCron_t **schedules,
+    size_t schedules_size)
 {
-    if (crons == NULL || size == 0)
+    if (crons == NULL || crons_size == 0)
     {
-        return NULL;
+        return 0;
     }
 
-    const FastCron_t *best_cron = NULL;
     time_t min_wakeup = FASTCRON_ERROR_EPOCH;
 
-    for (size_t i = 0; i < size; i++)
+    /* Step 1: Find the minimum wakeup time across all crons */
+    for (size_t i = 0; i < crons_size; i++)
     {
         time_t next = fastcron_get_next_wakeup(&crons[i], current_epoch);
         if (next != FASTCRON_ERROR_EPOCH && next > current_epoch)
@@ -375,29 +374,30 @@ const FastCron_t* fastcron_scheduler_next(
             if (min_wakeup == FASTCRON_ERROR_EPOCH || next < min_wakeup)
             {
                 min_wakeup = next;
-                best_cron = &crons[i];
             }
         }
     }
 
-    if (best_cron != NULL)
+    if (min_wakeup == FASTCRON_ERROR_EPOCH)
     {
-        if (sleep_s != NULL)
-        {
-            *sleep_s = fastcron_sleep_s(best_cron, current_epoch);
-        }
+        return 0;
+    }
 
-        if (sleep_ms != NULL)
-        {
-            *sleep_ms = fastcron_sleep_ms(best_cron, current_epoch, 0U);
-        }
+    size_t match_count = 0;
 
-        if (sleep_us != NULL)
+    /* Step 2: Collect all crons that trigger at min_wakeup */
+    for (size_t i = 0; i < crons_size; i++)
+    {
+        time_t next = fastcron_get_next_wakeup(&crons[i], current_epoch);
+        if (next == min_wakeup)
         {
-            *sleep_us = fastcron_sleep_us(best_cron, current_epoch, 0U);
+            if (schedules != NULL && match_count < schedules_size)
+            {
+                schedules[match_count] = &crons[i];
+            }
+            match_count++;
         }
     }
 
-    return best_cron;
+    return match_count;
 }
-
