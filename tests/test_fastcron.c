@@ -366,6 +366,42 @@ void test_sleep_us_is_finer(void)
 }
 
 /* -----------------------------------------------------------------------
+ * Exact value calculations
+ * ----------------------------------------------------------------------- */
+
+void test_sleep_exact_values(void)
+{
+    FastCron_t mask = {0};
+    fastcron_set_minute(&mask, 30);
+    fastcron_set_hour(&mask, 14);
+    fastcron_set_all_days_of_month(&mask);
+    fastcron_set_all_months(&mask);
+    fastcron_set_all_days_of_week(&mask);
+
+    // Current time: 2024-06-15 10:00:00 UTC
+    time_t tv_sec = make_epoch(2024, 6, 15, 10, 0);
+    uint32_t tv_usec = 250000; // 0.25 seconds
+
+    // Next wakeup: 2024-06-15 14:30:00 UTC
+    // Expected difference in seconds: 4.5 hours = 16200 seconds
+    
+    uint32_t s = 0;
+    uint64_t ms = 0;
+    uint64_t us = 0;
+    
+    bool res = fastcron_sleep(&mask, tv_sec, tv_usec, &s, &ms, &us);
+    TEST_ASSERT_TRUE(res);
+
+    TEST_ASSERT_EQUAL_UINT32(16200U, s);
+    
+    // milliseconds: 16200 * 1000 = 16200000. Minus 250 = 16199750
+    TEST_ASSERT_EQUAL_UINT64(16199750ULL, ms);
+
+    // microseconds: 16200 * 1000000 = 16200000000. Minus 250000 = 16199750000
+    TEST_ASSERT_EQUAL_UINT64(16199750000ULL, us);
+}
+
+/* -----------------------------------------------------------------------
  * Known epoch sanity — 2024-01-01 00:00 UTC = 1704067200
  * ----------------------------------------------------------------------- */
 
@@ -395,6 +431,7 @@ int main(void)
     RUN_TEST(test_sleep_s_positive);
     RUN_TEST(test_sleep_ms_sub_second_offset);
     RUN_TEST(test_sleep_us_is_finer);
+    RUN_TEST(test_sleep_exact_values);
     RUN_TEST(test_epoch_sanity_check);
 
     return UNITY_END();
