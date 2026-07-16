@@ -206,9 +206,9 @@ for (size_t i = 0; i < written; i++)
 |---|---|---|
 | **Algorithm** | Bounded O(k) bitmask | O(N) array iteration |
 | **RAM per schedule** | **24 bytes** (stack) | ~120+ bytes (parsed) |
-| **Flash footprint (.text)** | **~1.5 KB** | ~7.4 KB |
+| **Flash footprint (.text)** | **~1.2 KB** | ~7.4 KB |
 | **malloc calls** | **0** (Static) | Multiple `malloc()`s |
-| **Avg resolution time** | **142 ns** | ~100.7 µs (100,743 ns) |
+| **Avg resolution time** | **102 ns** | ~91.5 µs (91,561 ns) |
 | **OS dependencies** | **None** | libc (`mktime`, `malloc`) |
 | **MISRA compliant** | Yes | No |
 | **Deep-sleep ready** | Yes (µs precision) | No |
