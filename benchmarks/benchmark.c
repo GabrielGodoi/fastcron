@@ -148,6 +148,50 @@ uint64_t benchmarkCcronexprResolution(time_t baseEpoch, uint32_t iterations)
     return totalElapsedNs / iterations;
 }
 
+uint64_t benchmarkFastCronScheduler(time_t baseEpoch, uint32_t iterations)
+{
+    #define SCHEDULER_CRONS_COUNT 10
+    FastCron_t crons[SCHEDULER_CRONS_COUNT];
+    for (int i = 0; i < SCHEDULER_CRONS_COUNT; i++) {
+        crons[i].minutes       = (1ULL << (i % 60)); // espalhados nos minutos
+        crons[i].hours         = (1U << 14);
+        crons[i].days_of_month = (1U << 15);
+        crons[i].months        = (1U << 6);
+        crons[i].days_of_week  = (1U << 3);
+    }
+
+    uint64_t totalElapsedNs = 0;
+    volatile size_t accumulator = 0;
+    uint32_t chunkSize = iterations / 100;
+    FastCron_t schedules_out[SCHEDULER_CRONS_COUNT];
+
+    for (uint32_t p = 0; p <= 100; p++)
+    {
+        printf("\r[Scheduler] Running array iteration... %3d%%", p);
+        fflush(stdout);
+
+        if (p == 100) break;
+
+        struct timespec chunkStart;
+        if (clock_gettime(CLOCK_MONOTONIC, &chunkStart) != 0) return 0;
+
+        for (uint32_t i = 0; i < chunkSize; i++)
+        {
+            accumulator += fastcron_scheduler(crons, SCHEDULER_CRONS_COUNT, baseEpoch + (p * chunkSize) + i, schedules_out, SCHEDULER_CRONS_COUNT);
+        }
+
+        struct timespec chunkEnd;
+        if (clock_gettime(CLOCK_MONOTONIC, &chunkEnd) != 0) return 0;
+
+        totalElapsedNs += (chunkEnd.tv_sec - chunkStart.tv_sec) * 1000000000ULL + (chunkEnd.tv_nsec - chunkStart.tv_nsec);
+    }
+    printf("\n");
+
+    if (accumulator == 0 && totalElapsedNs == 0) return 0;
+
+    return totalElapsedNs / iterations;
+}
+
 int main(void)
 {
     compileAndMeasureFootprint();
@@ -171,8 +215,15 @@ int main(void)
         return 1;
     }
 
+    uint64_t schedulerNs = benchmarkFastCronScheduler(baseEpoch, iterations);
+    if (schedulerNs == 0)
+    {
+        return 1;
+    }
+
     printf("FastCron  (O(1) bit-scan)  : %llu ns per iteration\n", (unsigned long long)fastCronNs);
     printf("ccronexpr (O(N) array loop): %llu ns per iteration\n", (unsigned long long)ccronNs);
+    printf("FastCron Scheduler (10 crons): %llu ns per iteration\n", (unsigned long long)schedulerNs);
 
     return 0;
 }
