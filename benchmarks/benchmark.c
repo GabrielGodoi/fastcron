@@ -150,7 +150,7 @@ uint64_t benchmarkCcronexprResolution(time_t baseEpoch, uint32_t iterations)
 
 uint64_t benchmarkFastCronScheduler(time_t baseEpoch, uint32_t iterations)
 {
-    #define SCHEDULER_CRONS_COUNT 10
+    #define SCHEDULER_CRONS_COUNT 100
     FastCron_t crons[SCHEDULER_CRONS_COUNT];
     for (int i = 0; i < SCHEDULER_CRONS_COUNT; i++) {
         crons[i].minutes       = (1ULL << (i % 60)); // espalhados nos minutos
