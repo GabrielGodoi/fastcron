@@ -277,33 +277,28 @@ static inline void fastcron_set_all_days_of_week(FastCron_t *mask)
 time_t fastcron_get_next_wakeup(const FastCron_t *mask, time_t current_epoch);
 
 /**
- * @brief Whole-second sleep duration until the next cron event.
+ * @brief Unified sleep duration until the next cron event.
  *
- * @param[in] mask          Bitmask schedule.
- * @param[in] current_epoch Current UNIX timestamp (UTC).
- * @return    Seconds to sleep, or 0 on error.
- */
-uint32_t fastcron_sleep_s(const FastCron_t *mask, time_t current_epoch);
-
-/**
- * @brief Millisecond-accurate sleep duration using RTC sub-second offset.
+ * Resolves the next matching time and calculates the sleep delta. It uses optional
+ * output pointers, meaning you can pass NULL to ignore unneeded time precisions.
+ * This avoids redundant epoch calculation and limits the library text footprint.
  *
- * @param[in] mask   Bitmask schedule.
- * @param[in] tv_sec Current whole seconds (UTC epoch).
- * @param[in] tv_usec Current microsecond fraction (0–999999).
- * @return    Milliseconds to sleep (uint64_t to prevent overflow), or 0 on error.
+ * @param[in]  mask          Bitmask schedule.
+ * @param[in]  tv_sec        Current whole seconds (UTC epoch).
+ * @param[in]  tv_usec       Current microsecond fraction (0-999999). Ignored if ms/us pointers are NULL.
+ * @param[out] seconds       Pointer to receive the whole seconds sleep delta (or NULL).
+ * @param[out] mili_seconds  Pointer to receive the total milliseconds sleep delta (or NULL).
+ * @param[out] micro_seconds Pointer to receive the total microseconds sleep delta (or NULL).
+ * @return     true if a valid future schedule was found, false on error or past event.
  */
-uint64_t fastcron_sleep_ms(const FastCron_t *mask, time_t tv_sec, uint32_t tv_usec);
-
-/**
- * @brief Microsecond-accurate sleep duration using RTC sub-second offset.
- *
- * @param[in] mask   Bitmask schedule.
- * @param[in] tv_sec Current whole seconds (UTC epoch).
- * @param[in] tv_usec Current microsecond fraction (0–999999).
- * @return    Microseconds to sleep (uint64_t), or 0 on error.
- */
-uint64_t fastcron_sleep_us(const FastCron_t *mask, time_t tv_sec, uint32_t tv_usec);
+bool fastcron_sleep(
+    const FastCron_t *mask,
+    time_t tv_sec,
+    uint32_t tv_usec,
+    uint32_t *seconds,
+    uint64_t *mili_seconds,
+    uint64_t *micro_seconds
+);
 
 /**
  * @brief Unified helper function to find the crons to be executed.

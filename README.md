@@ -107,7 +107,8 @@ void app_main(void)
     struct timeval now;
     gettimeofday(&now, NULL);
 
-    uint64_t sleep_us = fastcron_sleep_us(&schedule, now.tv_sec, (uint32_t)now.tv_usec);
+    uint64_t sleep_us = 0;
+    fastcron_sleep(&schedule, now.tv_sec, (uint32_t)now.tv_usec, NULL, NULL, &sleep_us);
 
     printf("Deep sleep for %llu µs (%.1f min)\n",
            sleep_us, (double)sleep_us / 60000000.0);
@@ -166,7 +167,8 @@ if (written > count)
 }
 
 // 3. Calculate the sleep time until the next event
-uint32_t sleep_sec = fastcron_sleep_s(&next_schedules[0], now);
+uint32_t sleep_sec = 0;
+fastcron_sleep(&next_schedules[0], now, 0, &sleep_sec, NULL, NULL);
 printf("Going to sleep for %u seconds.\n", sleep_sec);
 
 // After waking up, you can iterate `next_schedules` to run the respective tasks
@@ -183,9 +185,7 @@ for (size_t i = 0; i < written; i++)
 | Function | Description |
 |---|---|
 | `fastcron_get_next_wakeup(mask, epoch)` | Next matching UTC epoch |
-| `fastcron_sleep_s(mask, epoch)` | Whole seconds until next event |
-| `fastcron_sleep_ms(mask, tv_sec, tv_usec)` | Milliseconds |
-| `fastcron_sleep_us(mask, tv_sec, tv_usec)` | Microseconds |
+| `fastcron_sleep(mask, tv_sec, tv_usec, *s, *ms, *us)` | Unified sleep calc with optional outputs |
 | `fastcron_scheduler(crons, size, epoch, out, out_size)` | Finds the next triggering crons from an array |
 
 ### `FastCron_t` Bitmask Fields

@@ -97,9 +97,7 @@ static FastCron_t every_minute(void)
 void test_null_mask_returns_error(void)
 {
     TEST_ASSERT_EQUAL_INT64((time_t)-1, fastcron_get_next_wakeup(NULL, 0));
-    TEST_ASSERT_EQUAL_UINT32(0, fastcron_sleep_s(NULL, 0));
-    TEST_ASSERT_EQUAL_UINT64(0, fastcron_sleep_ms(NULL, 0, 0));
-    TEST_ASSERT_EQUAL_UINT64(0, fastcron_sleep_us(NULL, 0, 0));
+    TEST_ASSERT_FALSE(fastcron_sleep(NULL, 0, 0, NULL, NULL, NULL));
 }
 
 /* -----------------------------------------------------------------------
@@ -312,8 +310,10 @@ void test_sleep_s_positive(void)
     FastCron_t mask = every_minute();
 
     time_t now = make_epoch(2024, 6, 15, 10, 30);
-    uint32_t s = fastcron_sleep_s(&mask, now);
+    uint32_t s = 0;
+    bool res = fastcron_sleep(&mask, now, 0, &s, NULL, NULL);
 
+    TEST_ASSERT_TRUE(res);
     TEST_ASSERT_TRUE(s > 0);
     TEST_ASSERT_TRUE(s <= 120);
 }
@@ -329,8 +329,12 @@ void test_sleep_ms_sub_second_offset(void)
     time_t tv_sec   = make_epoch(2024, 6, 15, 10, 30);
     uint32_t tv_usec = 500000;
 
-    uint64_t ms    = fastcron_sleep_ms(&mask, tv_sec, tv_usec);
-    uint32_t s_raw = fastcron_sleep_s(&mask, tv_sec);
+    uint64_t ms = 0;
+    uint32_t s_raw = 0;
+    
+    bool res = fastcron_sleep(&mask, tv_sec, tv_usec, &s_raw, &ms, NULL);
+    TEST_ASSERT_TRUE(res);
+
     uint64_t s_ms  = (uint64_t)s_raw * 1000U;
 
     TEST_ASSERT_TRUE(ms > 0);
@@ -351,8 +355,11 @@ void test_sleep_us_is_finer(void)
     time_t tv_sec   = make_epoch(2024, 6, 15, 10, 30);
     uint32_t tv_usec = 123456;
 
-    uint64_t us = fastcron_sleep_us(&mask, tv_sec, tv_usec);
-    uint64_t ms = fastcron_sleep_ms(&mask, tv_sec, tv_usec);
+    uint64_t us = 0;
+    uint64_t ms = 0;
+    
+    bool res = fastcron_sleep(&mask, tv_sec, tv_usec, NULL, &ms, &us);
+    TEST_ASSERT_TRUE(res);
 
     TEST_ASSERT_TRUE(us > 0);
     TEST_ASSERT_TRUE(us > ms);
