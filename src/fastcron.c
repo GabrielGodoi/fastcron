@@ -272,83 +272,62 @@ time_t fastcron_get_next_wakeup(const FastCron_t *mask, time_t current_epoch)
  * Sleep helpers
  * ----------------------------------------------------------------------- */
 
-uint32_t fastcron_sleep_s(const FastCron_t *mask, time_t current_epoch)
+bool fastcron_sleep(
+    const FastCron_t *mask,
+    time_t tv_sec,
+    uint32_t tv_usec,
+    uint32_t *seconds,
+    uint64_t *mili_seconds,
+    uint64_t *micro_seconds)
 {
     if (mask == NULL)
     {
-        return 0U;
-    }
-
-    time_t next = fastcron_get_next_wakeup(mask, current_epoch);
-    if (next == FASTCRON_ERROR_EPOCH)
-    {
-        return 0U;
-    }
-
-    if (next <= current_epoch)
-    {
-        return 0U;
-    }
-
-    return (uint32_t)(next - current_epoch);
-}
-
-uint64_t fastcron_sleep_ms(const FastCron_t *mask, time_t tv_sec, uint32_t tv_usec)
-{
-    if (mask == NULL)
-    {
-        return 0U;
+        return false;
     }
 
     time_t next = fastcron_get_next_wakeup(mask, tv_sec);
     if (next == FASTCRON_ERROR_EPOCH)
     {
-        return 0U;
+        return false;
     }
 
     if (next <= tv_sec)
     {
-        return 0U;
+        return false;
     }
 
-    uint64_t whole_ms = (uint64_t)(next - tv_sec) * 1000U;
-    uint64_t sub_ms   = (uint64_t)tv_usec / 1000U;
+    uint32_t whole_s = (uint32_t)(next - tv_sec);
 
-    if (whole_ms <= sub_ms)
+    if (seconds != NULL)
     {
-        return 0U;
+        *seconds = whole_s;
     }
 
-    return whole_ms - sub_ms;
-}
-
-uint64_t fastcron_sleep_us(const FastCron_t *mask, time_t tv_sec, uint32_t tv_usec)
-{
-    if (mask == NULL)
+    if (mili_seconds != NULL)
     {
-        return 0U;
+        uint64_t whole_ms = (uint64_t)whole_s * 1000U;
+        uint64_t sub_ms   = (uint64_t)tv_usec / 1000U;
+
+        *mili_seconds = 0U;
+        if (whole_ms > sub_ms)
+        {
+            *mili_seconds = whole_ms - sub_ms;
+        }
     }
 
-    time_t next = fastcron_get_next_wakeup(mask, tv_sec);
-    if (next == FASTCRON_ERROR_EPOCH)
+    if (micro_seconds != NULL)
     {
-        return 0U;
+        uint64_t whole_us = (uint64_t)whole_s * 1000000U;
+        uint64_t sub_us   = (uint64_t)tv_usec;
+
+        *micro_seconds = 0U;
+        if (whole_us > sub_us)
+        {
+            *micro_seconds = whole_us - sub_us;
+        }
     }
 
-    if (next <= tv_sec)
-    {
-        return 0U;
-    }
-
-    uint64_t whole_us = (uint64_t)(next - tv_sec) * 1000000U;
-    uint64_t sub_us   = (uint64_t)tv_usec;
-
-    if (whole_us <= sub_us)
-    {
-        return 0U;
-    }
-
-    return whole_us - sub_us;
+    return true;
 }
 
 size_t fastcron_scheduler(

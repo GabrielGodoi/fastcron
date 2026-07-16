@@ -28,7 +28,8 @@ int main(void)
             return 1;
         }
 
-        uint32_t sleepSeconds = fastcron_sleep_s(&schedule, currentEpoch);
+        uint32_t sleepSeconds = 0;
+        fastcron_sleep(&schedule, currentEpoch, 0, &sleepSeconds, NULL, NULL);
 
         struct tm* timeInfo = gmtime(&nextWakeup);
         if (timeInfo == NULL)

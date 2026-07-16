@@ -67,7 +67,8 @@ int main(void)
     time_t fastcronTime = 1704067200LL; // Reset epoch
     for (int i = 0; i < 3; i++)
     {
-        uint32_t sleepSeconds = fastcron_sleep_s(&schedule, fastcronTime); // Built-in API
+        uint32_t sleepSeconds = 0;
+        fastcron_sleep(&schedule, fastcronTime, 0, &sleepSeconds, NULL, NULL); // Built-in API
         
         fastcronTime = fastcron_get_next_wakeup(&schedule, fastcronTime);
         if (fastcronTime == (time_t)-1)
