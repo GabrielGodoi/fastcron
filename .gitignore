@@ -17,3 +17,9 @@ CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
 Makefile
+
+# ESP-IDF
+tests/esp32/build/
+tests/esp32/managed_components/
+tests/esp32/dependencies.lock
+tests/esp32/sdkconfig.old
