@@ -7,8 +7,11 @@ echo "Setting up ESP-IDF environment..."
 echo "Building ESP32 QEMU tests..."
 cd /workspace/tests/esp32
 
-# Set target to esp32
-idf.py set-target esp32
+# Set target to esp32 only if it hasn't been set yet
+# (Running set-target touches the config and forces a full 900+ files rebuild!)
+if [ ! -f sdkconfig ]; then
+    idf.py set-target esp32
+fi
 
 # Build the project
 idf.py build
