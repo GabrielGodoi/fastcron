@@ -6,8 +6,10 @@
 #include "unity.h"
 #include "fastcron.h"
 
+#ifndef ESP_PLATFORM
 void setUp(void)   {}
 void tearDown(void) {}
+#endif
 
 /* -----------------------------------------------------------------------
  * Helper: pure-math epoch builder (mirrors the internal tm_to_epoch)
@@ -415,10 +417,8 @@ void test_epoch_sanity_check(void)
  * Runner
  * ----------------------------------------------------------------------- */
 
-int main(void)
+void run_test_fastcron(void)
 {
-    UNITY_BEGIN();
-
     RUN_TEST(test_null_mask_returns_error);
     RUN_TEST(test_every_minute_next_is_close);
     RUN_TEST(test_specific_hour_minute);
@@ -433,6 +433,13 @@ int main(void)
     RUN_TEST(test_sleep_us_is_finer);
     RUN_TEST(test_sleep_exact_values);
     RUN_TEST(test_epoch_sanity_check);
+}
 
+#ifndef ESP_PLATFORM
+int main(void)
+{
+    UNITY_BEGIN();
+    run_test_fastcron();
     return UNITY_END();
 }
+#endif

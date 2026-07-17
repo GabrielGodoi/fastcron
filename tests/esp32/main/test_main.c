@@ -4,26 +4,30 @@
 #include "fastcron.h"
 #include "unity.h"
 
-// Basic chore test just to validate the environment
-void test_fastcron_chore(void)
-{
-    FastCron_t mask = {0};
-    fastcron_set_minute(&mask, 30);
-    
-    // Validate the bit was set correctly (1ULL << 30)
-    TEST_ASSERT_EQUAL_UINT64(1073741824ULL, mask.minutes);
-}
+// Global Unity setUp and tearDown for the ESP32 test runner
+void setUp(void) {}
+void tearDown(void) {}
+
+// Forward declare the runners exposed by the native tests
+void run_test_fastcron(void);
+void run_test_fastcron_scheduler(void);
 
 void app_main(void)
 {
     printf("\n");
     printf("==========================================\n");
-    printf(" Iniciando Testes Unitários no QEMU...\n");
+    printf(" Iniciando Testes Nativos no QEMU ESP32...\n");
     printf("==========================================\n");
     printf("\n");
 
     UNITY_BEGIN();
-    RUN_TEST(test_fastcron_chore);
+    
+    printf("--- Running test_fastcron.c ---\n");
+    run_test_fastcron();
+    
+    printf("\n--- Running test_fastcron_scheduler.c ---\n");
+    run_test_fastcron_scheduler();
+    
     UNITY_END();
 
     // Give QEMU time to flush serial and be killed by timeout
