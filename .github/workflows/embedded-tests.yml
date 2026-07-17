@@ -1,0 +1,24 @@
+name: Embedded Tests (ESP32)
+
+on:
+  workflow_call:
+
+jobs:
+  embedded-tests:
+    name: Embedded Tests (QEMU ESP32)
+    runs-on: ubuntu-latest
+    container: espressif/idf:v5.2
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install QEMU Tools
+        run: |
+          apt-get update && apt-get install -y libgcrypt20 libglib2.0-0 libpixman-1-0 libsdl2-2.0-0 libslirp0
+          python $IDF_PATH/tools/idf_tools.py install qemu-xtensa qemu-riscv32
+
+      - name: Run QEMU Tests
+        run: |
+          . $IDF_PATH/export.sh
+          bash docker/run_qemu.sh

@@ -1,0 +1,5 @@
+* text=auto
+
+# Forçar Unix LF em arquivos shell e de ambiente docker
+*.sh text eol=lf
+docker/* text eol=lf

@@ -1,8 +1,14 @@
 #include "unity.h"
 #include "fastcron.h"
 
+#ifndef TEST_ASSERT_EQUAL_size_t
+#define TEST_ASSERT_EQUAL_size_t(expected, actual) TEST_ASSERT_EQUAL_UINT32((uint32_t)(expected), (uint32_t)(actual))
+#endif
+
+#ifndef ESP_PLATFORM
 void setUp(void) {}
 void tearDown(void) {}
+#endif
 
 #define ALL_MINUTES   (0x0FFFFFFFFFFFFFFFULL)
 #define ALL_HOURS     (0x00FFFFFFU)
@@ -206,16 +212,21 @@ void test_scheduler_wrong_capacity_too_large(void)
     TEST_ASSERT_EQUAL_MEMORY(&empty_cron, &schedules[4], sizeof(FastCron_t));
 }
 
-int main(void)
+void run_test_fastcron_scheduler(void)
 {
-    UNITY_BEGIN();
-
     RUN_TEST(test_scheduler_multiple_identical_crons);
     RUN_TEST(test_scheduler_leap_year_and_month_lengths);
     RUN_TEST(test_scheduler_edge_case_mixed_invalid_crons);
     RUN_TEST(test_scheduler_edge_case_exact_epoch_boundary);
     RUN_TEST(test_scheduler_wrong_capacity_too_small);
     RUN_TEST(test_scheduler_wrong_capacity_too_large);
+}
 
+#ifndef ESP_PLATFORM
+int main(void)
+{
+    UNITY_BEGIN();
+    run_test_fastcron_scheduler();
     return UNITY_END();
 }
+#endif

@@ -12,27 +12,17 @@ permissions:
 
 jobs:
   # -----------------------------------------------------------------------
-  # Job 1: Build & Test
+  # Job 1: Native Tests (Linux/x64)
   # -----------------------------------------------------------------------
-  build-and-test:
-    name: Build & Test
-    runs-on: ubuntu-latest
+  native-tests:
+    uses: ./.github/workflows/native-tests.yml
 
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install Build Tools (For local act simulator)
-        run: sudo apt-get update && sudo apt-get install -y cmake build-essential
-
-      - name: Configure CMake
-        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DFASTCRON_BUILD_TESTS=ON
-
-      - name: Build
-        run: cmake --build build --config Release
-
-      - name: Run Tests
-        run: ctest --test-dir build --output-on-failure -C Release
+  # -----------------------------------------------------------------------
+  # Job 2: Embedded Tests (ESP32 QEMU)
+  # -----------------------------------------------------------------------
+  embedded-tests:
+    needs: native-tests
+    uses: ./.github/workflows/embedded-tests.yml
 
   # -----------------------------------------------------------------------
   # Job 2: Static Analysis (Cppcheck — MISRA memory compliance)
@@ -68,7 +58,7 @@ jobs:
     name: Documentation
     runs-on: ubuntu-latest
     if: github.ref == 'refs/heads/main' && github.event_name == 'push'
-    needs: [ build-and-test, static-analysis ]
+    needs: [ native-tests, embedded-tests, static-analysis ]
 
     steps:
       - name: Checkout
