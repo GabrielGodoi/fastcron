@@ -5,7 +5,7 @@ echo "Setting up ESP-IDF environment..."
 . $IDF_PATH/export.sh
 
 echo "Building ESP32 QEMU tests..."
-cd /workspace/tests/esp32
+cd "$(dirname "$0")/../tests/esp32"
 
 # Set target to esp32 only if it hasn't been set yet
 # (Running set-target touches the config and forces a full 900+ files rebuild!)
