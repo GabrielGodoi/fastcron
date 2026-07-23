@@ -111,7 +111,7 @@ static inline void fastcron_set_hour(FastCron_t *mask, uint8_t hour)
     {
         return;
     }
-    mask->hours |= (1U << hour);
+    mask->hours |= (1UL << hour);
 }
 
 /**
@@ -125,7 +125,7 @@ static inline void fastcron_clear_hour(FastCron_t *mask, uint8_t hour)
     {
         return;
     }
-    mask->hours &= ~(1U << hour);
+    mask->hours &= ~(1UL << hour);
 }
 
 /**
@@ -152,7 +152,7 @@ static inline void fastcron_set_day_of_month(FastCron_t *mask, uint8_t dom)
     {
         return;
     }
-    mask->days_of_month |= (1U << dom);
+    mask->days_of_month |= (1UL << dom);
 }
 
 /**
@@ -166,7 +166,7 @@ static inline void fastcron_clear_day_of_month(FastCron_t *mask, uint8_t dom)
     {
         return;
     }
-    mask->days_of_month &= ~(1U << dom);
+    mask->days_of_month &= ~(1UL << dom);
 }
 
 /**
@@ -193,7 +193,7 @@ static inline void fastcron_set_month(FastCron_t *mask, uint8_t month)
     {
         return;
     }
-    mask->months |= (1U << month);
+    mask->months |= (1UL << month);
 }
 
 /**
@@ -207,7 +207,7 @@ static inline void fastcron_clear_month(FastCron_t *mask, uint8_t month)
     {
         return;
     }
-    mask->months &= ~(1U << month);
+    mask->months &= ~(1UL << month);
 }
 
 /**
@@ -234,7 +234,7 @@ static inline void fastcron_set_day_of_week(FastCron_t *mask, FastCronDayOfWeek_
     {
         return;
     }
-    mask->days_of_week |= (1U << (uint8_t)dow);
+    mask->days_of_week |= (1UL << (uint8_t)dow);
 }
 
 /**
@@ -248,7 +248,7 @@ static inline void fastcron_clear_day_of_week(FastCron_t *mask, FastCronDayOfWee
     {
         return;
     }
-    mask->days_of_week &= ~(1U << (uint8_t)dow);
+    mask->days_of_week &= ~(1UL << (uint8_t)dow);
 }
 
 /**
