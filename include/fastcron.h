@@ -66,7 +66,7 @@ typedef struct
  */
 static inline void fastcron_set_minute(FastCron_t *mask, uint8_t min)
 {
-    if (mask == NULL || min > 59)
+    if ((mask == NULL) || (min > 59U))
     {
         return;
     }
@@ -80,7 +80,7 @@ static inline void fastcron_set_minute(FastCron_t *mask, uint8_t min)
  */
 static inline void fastcron_clear_minute(FastCron_t *mask, uint8_t min)
 {
-    if (mask == NULL || min > 59)
+    if ((mask == NULL) || (min > 59U))
     {
         return;
     }
@@ -107,7 +107,7 @@ static inline void fastcron_set_all_minutes(FastCron_t *mask)
  */
 static inline void fastcron_set_hour(FastCron_t *mask, uint8_t hour)
 {
-    if (mask == NULL || hour > 23)
+    if ((mask == NULL) || (hour > 23U))
     {
         return;
     }
@@ -121,7 +121,7 @@ static inline void fastcron_set_hour(FastCron_t *mask, uint8_t hour)
  */
 static inline void fastcron_clear_hour(FastCron_t *mask, uint8_t hour)
 {
-    if (mask == NULL || hour > 23)
+    if ((mask == NULL) || (hour > 23U))
     {
         return;
     }
@@ -148,7 +148,7 @@ static inline void fastcron_set_all_hours(FastCron_t *mask)
  */
 static inline void fastcron_set_day_of_month(FastCron_t *mask, uint8_t dom)
 {
-    if (mask == NULL || dom < 1 || dom > 31)
+    if ((mask == NULL) || (dom < 1U) || (dom > 31U))
     {
         return;
     }
@@ -162,7 +162,7 @@ static inline void fastcron_set_day_of_month(FastCron_t *mask, uint8_t dom)
  */
 static inline void fastcron_clear_day_of_month(FastCron_t *mask, uint8_t dom)
 {
-    if (mask == NULL || dom < 1 || dom > 31)
+    if ((mask == NULL) || (dom < 1U) || (dom > 31U))
     {
         return;
     }
@@ -189,7 +189,7 @@ static inline void fastcron_set_all_days_of_month(FastCron_t *mask)
  */
 static inline void fastcron_set_month(FastCron_t *mask, uint8_t month)
 {
-    if (mask == NULL || month < 1 || month > 12)
+    if ((mask == NULL) || (month < 1U) || (month > 12U))
     {
         return;
     }
@@ -203,7 +203,7 @@ static inline void fastcron_set_month(FastCron_t *mask, uint8_t month)
  */
 static inline void fastcron_clear_month(FastCron_t *mask, uint8_t month)
 {
-    if (mask == NULL || month < 1 || month > 12)
+    if ((mask == NULL) || (month < 1U) || (month > 12U))
     {
         return;
     }
@@ -230,7 +230,7 @@ static inline void fastcron_set_all_months(FastCron_t *mask)
  */
 static inline void fastcron_set_day_of_week(FastCron_t *mask, FastCronDayOfWeek_t dow)
 {
-    if (mask == NULL || (uint8_t)dow > 6)
+    if ((mask == NULL) || ((uint8_t)dow > 6U))
     {
         return;
     }
@@ -244,7 +244,7 @@ static inline void fastcron_set_day_of_week(FastCron_t *mask, FastCronDayOfWeek_
  */
 static inline void fastcron_clear_day_of_week(FastCron_t *mask, FastCronDayOfWeek_t dow)
 {
-    if (mask == NULL || (uint8_t)dow > 6)
+    if ((mask == NULL) || ((uint8_t)dow > 6U))
     {
         return;
     }

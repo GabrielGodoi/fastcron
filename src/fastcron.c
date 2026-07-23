@@ -55,7 +55,8 @@ static time_t tm_to_epoch(int year, int month, int day, int hour, int minute)
     days += (((306 * (m + 1)) / 10) + day) - 428;
     days -= 719163;
 
-    return (time_t)((days * 86400LL) + (hour * 3600LL) + (minute * 60LL));
+    int64_t total = ((int64_t)days * 86400LL) + ((int64_t)hour * 3600LL) + ((int64_t)minute * 60LL);
+    return (time_t)total;
 }
 
 static void epoch_to_fields(time_t epoch, int *year, int *month, int *day,
@@ -230,7 +231,7 @@ time_t fastcron_get_next_wakeup(const FastCron_t *mask, time_t current_epoch)
         }
 
         int dow = day_of_week(year, month, day);
-        if (((mask->days_of_week >> dow) & 1U) == 0U)
+        if ((((uint32_t)mask->days_of_week >> (uint32_t)dow) & 1U) == 0U)
         {
             day++;
             hour   = 0;
@@ -337,7 +338,7 @@ size_t fastcron_scheduler(
     FastCron_t *schedules,
     size_t schedules_size)
 {
-    if (crons == NULL || crons_size == 0)
+    if ((crons == NULL) || (crons_size == 0U))
     {
         return 0;
     }
