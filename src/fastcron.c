@@ -52,7 +52,7 @@ static time_t tm_to_epoch(int year, int month, int day, int hour, int minute)
     }
 
     int days = (365 * y) + (y / 4) - (y / 100) + (y / 400);
-    days += (306 * (m + 1)) / 10 + day - 428;
+    days += (((306 * (m + 1)) / 10) + day) - 428;
     days -= 719163;
 
     return (time_t)((days * 86400LL) + (hour * 3600LL) + (minute * 60LL));
@@ -75,14 +75,14 @@ static void epoch_to_fields(time_t epoch, int *year, int *month, int *day,
     *minute = (rem % 3600) / 60;
 
     int64_t z = d + 719468;
-    int     era  = (int)((z >= 0 ? z : z - 146096) / 146097);
-    int     doe  = (int)(z - (int64_t)era * 146097);
-    int     yoe  = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
-    int     y    = yoe + era * 400;
-    int     doy  = doe - (365 * yoe + yoe / 4 - yoe / 100);
-    int     mp   = (5 * doy + 2) / 153;
-    int     dd   = doy - (153 * mp + 2) / 5 + 1;
-    int     mm   = mp + (mp < 10 ? 3 : -9);
+    int     era  = (int)(((z >= 0) ? z : (z - 146096)) / 146097);
+    int     doe  = (int)(z - ((int64_t)era * 146097));
+    int     yoe  = (((doe - (doe / 1460)) + (doe / 36524)) - (doe / 146096)) / 365;
+    int     y    = yoe + (era * 400);
+    int     doy  = doe - (((365 * yoe) + (yoe / 4)) - (yoe / 100));
+    int     mp   = ((5 * doy) + 2) / 153;
+    int     dd   = (doy - (((153 * mp) + 2) / 5)) + 1;
+    int     mm   = mp + ((mp < 10) ? 3 : -9);
 
     if (mm <= 2)
     {
@@ -108,7 +108,7 @@ static int day_of_week(int year, int month, int day)
         y -= 1;
     }
 
-    return (y + y / 4 - y / 100 + y / 400 + t[month - 1] + day) % 7;
+    return (((((y + (y / 4)) - (y / 100)) + (y / 400)) + t[month - 1]) + day) % 7;
 }
 
 /* -----------------------------------------------------------------------
@@ -348,9 +348,9 @@ size_t fastcron_scheduler(
     for (size_t i = 0; i < crons_size; i++)
     {
         time_t next = fastcron_get_next_wakeup(&crons[i], current_epoch);
-        if (next != FASTCRON_ERROR_EPOCH && next > current_epoch)
+        if ((next != FASTCRON_ERROR_EPOCH) && (next > current_epoch))
         {
-            if (min_wakeup == FASTCRON_ERROR_EPOCH || next < min_wakeup)
+            if ((min_wakeup == FASTCRON_ERROR_EPOCH) || (next < min_wakeup))
             {
                 min_wakeup = next;
             }
@@ -370,7 +370,7 @@ size_t fastcron_scheduler(
         time_t next = fastcron_get_next_wakeup(&crons[i], current_epoch);
         if (next == min_wakeup)
         {
-            if (schedules != NULL && match_count < schedules_size)
+            if ((schedules != NULL) && (match_count < schedules_size))
             {
                 schedules[match_count] = crons[i];
             }
