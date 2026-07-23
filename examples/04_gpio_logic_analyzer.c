@@ -16,15 +16,15 @@ void measureExecutionTime(void)
         .days_of_week  = 0x7FU,
     };
 
-    time_t currentEpoch = 1704067200LL;
+    fastcron_time_t currentEpoch = 1704067200LL;
 
     GPIO_PORT_B_BSRR = PIN_5_HIGH;
     
-    volatile time_t nextWakeup = fastcron_get_next_wakeup(&schedule, currentEpoch);
+    volatile fastcron_time_t nextWakeup = fastcron_get_next_wakeup(&schedule, currentEpoch);
 
     GPIO_PORT_B_BSRR = PIN_5_LOW;
     
-    if (nextWakeup == (time_t)-1)
+    if (nextWakeup == (fastcron_time_t)-1)
     {
         return;
     }

@@ -21,7 +21,7 @@ void tearDown(void) {}
 #define BIT16(n)  ((uint16_t)1U << (n))
 #define BIT8(n)   ((uint8_t)1U  << (n))
 
-static time_t make_epoch(int year, int month, int day, int hour, int minute)
+static fastcron_time_t make_epoch(int year, int month, int day, int hour, int minute)
 {
     int y = year;
     int m = month;
@@ -36,7 +36,7 @@ static time_t make_epoch(int year, int month, int day, int hour, int minute)
     days += (306 * (m + 1)) / 10 + day - 428;
     days -= 719163;
 
-    return (time_t)((days * 86400LL) + (hour * 3600LL) + (minute * 60LL));
+    return (fastcron_time_t)((days * 86400LL) + (hour * 3600LL) + (minute * 60LL));
 }
 
 void test_scheduler_multiple_identical_crons(void)
@@ -51,7 +51,7 @@ void test_scheduler_multiple_identical_crons(void)
         crons[i].days_of_week  = ALL_DOW;
     }
 
-    time_t now = make_epoch(2024, 6, 15, 10, 0); // 10:00
+    fastcron_time_t now = make_epoch(2024, 6, 15, 10, 0); // 10:00
 
     size_t count = fastcron_scheduler(crons, 3, now, NULL, 0);
     TEST_ASSERT_EQUAL_size_t(3, count);
@@ -91,7 +91,7 @@ void test_scheduler_leap_year_and_month_lengths(void)
     crons[3].minutes = BIT64(0); crons[3].hours = BIT32(0);
     crons[3].days_of_month = BIT32(31); crons[3].months = BIT16(5); crons[3].days_of_week = ALL_DOW;
 
-    time_t now = make_epoch(2024, 2, 27, 0, 0); // 2024 is a leap year
+    fastcron_time_t now = make_epoch(2024, 2, 27, 0, 0); // 2024 is a leap year
 
     FastCron_t scheds[4] = {0};
     
@@ -127,7 +127,7 @@ void test_scheduler_edge_case_mixed_invalid_crons(void)
     crons[1].minutes = BIT64(0); crons[1].hours = BIT32(0);
     crons[1].days_of_month = BIT32(1); crons[1].months = BIT16(3); crons[1].days_of_week = ALL_DOW;
 
-    time_t now = make_epoch(2024, 2, 28, 0, 0);
+    fastcron_time_t now = make_epoch(2024, 2, 28, 0, 0);
 
     FastCron_t scheds[2] = {0};
     size_t count = fastcron_scheduler(crons, 2, now, scheds, 2);
@@ -144,7 +144,7 @@ void test_scheduler_edge_case_exact_epoch_boundary(void)
     crons[0].minutes = BIT64(0); crons[0].hours = BIT32(12);
     crons[0].days_of_month = ALL_DOM; crons[0].months = ALL_MONTHS; crons[0].days_of_week = ALL_DOW;
 
-    time_t exact_now = make_epoch(2024, 6, 15, 12, 0); // Exactly on the minute!
+    fastcron_time_t exact_now = make_epoch(2024, 6, 15, 12, 0); // Exactly on the minute!
 
     FastCron_t scheds[1] = {0};
     size_t count = fastcron_scheduler(crons, 1, exact_now, scheds, 1);
@@ -152,7 +152,7 @@ void test_scheduler_edge_case_exact_epoch_boundary(void)
     TEST_ASSERT_EQUAL_size_t(1, count);
     
     // Verificamos se ele agendou para amanhã, e não para o exato segundo de hoje!
-    time_t next_wakeup = fastcron_get_next_wakeup(&scheds[0], exact_now);
+    fastcron_time_t next_wakeup = fastcron_get_next_wakeup(&scheds[0], exact_now);
     TEST_ASSERT_TRUE(next_wakeup > exact_now);
     TEST_ASSERT_EQUAL_INT64((int64_t)exact_now + 86400, (int64_t)next_wakeup);
 }
@@ -166,7 +166,7 @@ void test_scheduler_wrong_capacity_too_small(void)
         crons[i].days_of_month = ALL_DOM; crons[i].months = ALL_MONTHS; crons[i].days_of_week = ALL_DOW;
     }
 
-    time_t now = make_epoch(2024, 6, 15, 10, 0);
+    fastcron_time_t now = make_epoch(2024, 6, 15, 10, 0);
 
     FastCron_t schedules[3] = {0}; // Allocate 3
     size_t count = fastcron_scheduler(crons, 3, now, schedules, 2); // Pass capacity 2
@@ -191,7 +191,7 @@ void test_scheduler_wrong_capacity_too_large(void)
         crons[i].days_of_month = ALL_DOM; crons[i].months = ALL_MONTHS; crons[i].days_of_week = ALL_DOW;
     }
 
-    time_t now = make_epoch(2024, 6, 15, 10, 0);
+    fastcron_time_t now = make_epoch(2024, 6, 15, 10, 0);
 
     FastCron_t schedules[5] = {0}; // Allocate 5!
     

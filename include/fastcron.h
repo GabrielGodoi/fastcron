@@ -15,7 +15,9 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <time.h>
+#include <stddef.h>
+
+typedef int64_t fastcron_time_t;
 
 #ifdef __cplusplus
 extern "C"
@@ -272,9 +274,9 @@ static inline void fastcron_set_all_days_of_week(FastCron_t *mask)
  *
  * @param[in] mask          Pre-populated bitmask schedule.
  * @param[in] current_epoch Current UNIX timestamp (UTC).
- * @return    Next matching epoch (always > current_epoch), or (time_t)-1 on error.
+ * @return    Next matching epoch (always > current_epoch), or (fastcron_time_t)-1 on error.
  */
-time_t fastcron_get_next_wakeup(const FastCron_t *mask, time_t current_epoch);
+fastcron_time_t fastcron_get_next_wakeup(const FastCron_t *mask, fastcron_time_t current_epoch);
 
 /**
  * @brief Unified sleep duration until the next cron event.
@@ -293,7 +295,7 @@ time_t fastcron_get_next_wakeup(const FastCron_t *mask, time_t current_epoch);
  */
 bool fastcron_sleep(
     const FastCron_t *mask,
-    time_t tv_sec,
+    fastcron_time_t tv_sec,
     uint32_t tv_usec,
     uint32_t *seconds,
     uint64_t *mili_seconds,
@@ -322,7 +324,7 @@ bool fastcron_sleep(
 size_t fastcron_scheduler(
     const FastCron_t *crons,
     size_t crons_size,
-    time_t current_epoch,
+    fastcron_time_t current_epoch,
     FastCron_t *schedules,
     size_t schedules_size
 );

@@ -11,7 +11,7 @@ int main(void)
     printf("Target Schedule: 14:30 on the 15th of June\n");
     printf("========================================================\n\n");
 
-    time_t currentEpoch = 1704067200LL; // 2024-01-01 00:00:00 UTC
+    fastcron_time_t currentEpoch = 1704067200LL; // 2024-01-01 00:00:00 UTC
 
     // ---------------------------------------------------------
     // 1. ccronexpr (Standard String-based API)
@@ -28,11 +28,11 @@ int main(void)
         return 1;
     }
 
-    time_t ccronTime = currentEpoch;
+    fastcron_time_t ccronTime = currentEpoch;
     for (int i = 0; i < 3; i++)
     {
         ccronTime = cron_next(&expr, ccronTime);
-        if (ccronTime == (time_t)-1)
+        if (ccronTime == (fastcron_time_t)-1)
         {
             return 1;
         }
@@ -64,14 +64,14 @@ int main(void)
     fastcron_set_month(&schedule, 6);
     fastcron_set_all_days_of_week(&schedule);
 
-    time_t fastcronTime = 1704067200LL; // Reset epoch
+    fastcron_time_t fastcronTime = 1704067200LL; // Reset epoch
     for (int i = 0; i < 3; i++)
     {
         uint32_t sleepSeconds = 0;
         fastcron_sleep(&schedule, fastcronTime, 0, &sleepSeconds, NULL, NULL); // Built-in API
         
         fastcronTime = fastcron_get_next_wakeup(&schedule, fastcronTime);
-        if (fastcronTime == (time_t)-1)
+        if (fastcronTime == (fastcron_time_t)-1)
         {
             return 1;
         }

@@ -6,7 +6,7 @@
 
 #include "fastcron.h"
 
-#define FASTCRON_ERROR_EPOCH   ((time_t)-1)
+#define FASTCRON_ERROR_EPOCH   ((fastcron_time_t)-1)
 #define FASTCRON_MAX_ITERATIONS 800
 
 /* -----------------------------------------------------------------------
@@ -42,7 +42,7 @@ static inline int ctz32(uint32_t val)
  * Pure-math UTC epoch ↔ calendar conversions (Julian Day based)
  * ----------------------------------------------------------------------- */
 
-static time_t tm_to_epoch(int year, int month, int day, int hour, int minute)
+static fastcron_time_t tm_to_epoch(int year, int month, int day, int hour, int minute)
 {
     int y = year;
     int m = month;
@@ -58,10 +58,10 @@ static time_t tm_to_epoch(int year, int month, int day, int hour, int minute)
     days -= 719163;
 
     int64_t total = ((int64_t)days * 86400LL) + ((int64_t)hour * 3600LL) + ((int64_t)minute * 60LL);
-    return (time_t)total;
+    return (fastcron_time_t)total;
 }
 
-static void epoch_to_fields(time_t epoch, int *year, int *month, int *day,
+static void epoch_to_fields(fastcron_time_t epoch, int *year, int *month, int *day,
                             int *hour, int *minute)
 {
     int64_t s   = (int64_t)epoch;
@@ -167,14 +167,14 @@ static int find_next_bit32(uint32_t mask, int start)
  * carry into the next-higher field.
  * ----------------------------------------------------------------------- */
 
-time_t fastcron_get_next_wakeup(const FastCron_t *mask, time_t current_epoch)
+fastcron_time_t fastcron_get_next_wakeup(const FastCron_t *mask, fastcron_time_t current_epoch)
 {
     if (mask == NULL)
     {
         return FASTCRON_ERROR_EPOCH;
     }
 
-    time_t base = current_epoch + 60;
+    fastcron_time_t base = current_epoch + 60;
     base -= (base % 60);
 
     int year;
@@ -281,7 +281,7 @@ time_t fastcron_get_next_wakeup(const FastCron_t *mask, time_t current_epoch)
 
 bool fastcron_sleep(
     const FastCron_t *mask,
-    time_t tv_sec,
+    fastcron_time_t tv_sec,
     uint32_t tv_usec,
     uint32_t *seconds,
     uint64_t *mili_seconds,
@@ -292,7 +292,7 @@ bool fastcron_sleep(
         return false;
     }
 
-    time_t next = fastcron_get_next_wakeup(mask, tv_sec);
+    fastcron_time_t next = fastcron_get_next_wakeup(mask, tv_sec);
     if (next == FASTCRON_ERROR_EPOCH)
     {
         return false;
@@ -340,7 +340,7 @@ bool fastcron_sleep(
 size_t fastcron_scheduler(
     const FastCron_t *crons,
     size_t crons_size,
-    time_t current_epoch,
+    fastcron_time_t current_epoch,
     FastCron_t *schedules,
     size_t schedules_size)
 {
@@ -349,12 +349,12 @@ size_t fastcron_scheduler(
         return 0;
     }
 
-    time_t min_wakeup = FASTCRON_ERROR_EPOCH;
+    fastcron_time_t min_wakeup = FASTCRON_ERROR_EPOCH;
 
     /* Step 1: Find the minimum wakeup time across all crons */
     for (size_t i = 0; i < crons_size; i++)
     {
-        time_t next = fastcron_get_next_wakeup(&crons[i], current_epoch);
+        fastcron_time_t next = fastcron_get_next_wakeup(&crons[i], current_epoch);
         if ((next != FASTCRON_ERROR_EPOCH) && (next > current_epoch))
         {
             if ((min_wakeup == FASTCRON_ERROR_EPOCH) || (next < min_wakeup))
@@ -374,7 +374,7 @@ size_t fastcron_scheduler(
     /* Step 2: Collect all crons that trigger at min_wakeup */
     for (size_t i = 0; i < crons_size; i++)
     {
-        time_t next = fastcron_get_next_wakeup(&crons[i], current_epoch);
+        fastcron_time_t next = fastcron_get_next_wakeup(&crons[i], current_epoch);
         if (next == min_wakeup)
         {
             if ((schedules != NULL) && (match_count < schedules_size))
