@@ -6,15 +6,16 @@
 
 #include "fastcron.h"
 
-#define FASTCRON_ERROR_EPOCH   ((time_t)-1)
+#define FASTCRON_ERROR_EPOCH   ((fastcron_time_t)-1)
 #define FASTCRON_MAX_ITERATIONS 800
 
 /* -----------------------------------------------------------------------
  * Portable bit-scan intrinsics
  * ----------------------------------------------------------------------- */
 
-static inline int ctz64(uint64_t v)
+static inline int ctz64(uint64_t val)
 {
+    uint64_t v = val;
     int n = 0;
     if ((v & 0x00000000FFFFFFFFULL) == 0U) { n += 32; v >>= 32; }
     if ((v & 0x000000000000FFFFULL) == 0U) { n += 16; v >>= 16; }
@@ -25,8 +26,9 @@ static inline int ctz64(uint64_t v)
     return n;
 }
 
-static inline int ctz32(uint32_t v)
+static inline int ctz32(uint32_t val)
 {
+    uint32_t v = val;
     int n = 0;
     if ((v & 0x0000FFFFU) == 0U) { n += 16; v >>= 16; }
     if ((v & 0x000000FFU) == 0U) { n +=  8; v >>=  8; }
@@ -40,7 +42,7 @@ static inline int ctz32(uint32_t v)
  * Pure-math UTC epoch ↔ calendar conversions (Julian Day based)
  * ----------------------------------------------------------------------- */
 
-static time_t tm_to_epoch(int year, int month, int day, int hour, int minute)
+static fastcron_time_t tm_to_epoch(int year, int month, int day, int hour, int minute)
 {
     int y = year;
     int m = month;
@@ -52,13 +54,14 @@ static time_t tm_to_epoch(int year, int month, int day, int hour, int minute)
     }
 
     int days = (365 * y) + (y / 4) - (y / 100) + (y / 400);
-    days += (306 * (m + 1)) / 10 + day - 428;
+    days += (((306 * (m + 1)) / 10) + day) - 428;
     days -= 719163;
 
-    return (time_t)((days * 86400LL) + (hour * 3600LL) + (minute * 60LL));
+    int64_t total = ((int64_t)days * 86400LL) + ((int64_t)hour * 3600LL) + ((int64_t)minute * 60LL);
+    return (fastcron_time_t)total;
 }
 
-static void epoch_to_fields(time_t epoch, int *year, int *month, int *day,
+static void epoch_to_fields(fastcron_time_t epoch, int *year, int *month, int *day,
                             int *hour, int *minute)
 {
     int64_t s   = (int64_t)epoch;
@@ -75,14 +78,14 @@ static void epoch_to_fields(time_t epoch, int *year, int *month, int *day,
     *minute = (rem % 3600) / 60;
 
     int64_t z = d + 719468;
-    int     era  = (int)((z >= 0 ? z : z - 146096) / 146097);
-    int     doe  = (int)(z - (int64_t)era * 146097);
-    int     yoe  = (doe - doe / 1460 + doe / 36524 - doe / 146096) / 365;
-    int     y    = yoe + era * 400;
-    int     doy  = doe - (365 * yoe + yoe / 4 - yoe / 100);
-    int     mp   = (5 * doy + 2) / 153;
-    int     dd   = doy - (153 * mp + 2) / 5 + 1;
-    int     mm   = mp + (mp < 10 ? 3 : -9);
+    int     era  = (int)(((z >= 0) ? z : (z - 146096)) / 146097);
+    int     doe  = (int)(z - ((int64_t)era * 146097));
+    int     yoe  = (((doe - (doe / 1460)) + (doe / 36524)) - (doe / 146096)) / 365;
+    int     y    = yoe + (era * 400);
+    int     doy  = doe - (((365 * yoe) + (yoe / 4)) - (yoe / 100));
+    int     mp   = ((5 * doy) + 2) / 153;
+    int     dd   = (doy - (((153 * mp) + 2) / 5)) + 1;
+    int     mm   = mp + ((mp < 10) ? 3 : -9);
 
     if (mm <= 2)
     {
@@ -108,7 +111,7 @@ static int day_of_week(int year, int month, int day)
         y -= 1;
     }
 
-    return (y + y / 4 - y / 100 + y / 400 + t[month - 1] + day) % 7;
+    return (((((y + (y / 4)) - (y / 100)) + (y / 400)) + t[month - 1]) + day) % 7;
 }
 
 /* -----------------------------------------------------------------------
@@ -121,6 +124,7 @@ static int days_in_month(int year, int month)
 
     if (month != 2)
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return table[month];
     }
 
@@ -138,6 +142,7 @@ static int find_next_bit64(uint64_t mask, int start)
 
     if (shifted == 0U)
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return -1;
     }
 
@@ -150,6 +155,7 @@ static int find_next_bit32(uint32_t mask, int start)
 
     if (shifted == 0U)
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return -1;
     }
 
@@ -164,17 +170,22 @@ static int find_next_bit32(uint32_t mask, int start)
  * carry into the next-higher field.
  * ----------------------------------------------------------------------- */
 
-time_t fastcron_get_next_wakeup(const FastCron_t *mask, time_t current_epoch)
+fastcron_time_t fastcron_get_next_wakeup(const FastCron_t *mask, fastcron_time_t current_epoch)
 {
     if (mask == NULL)
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return FASTCRON_ERROR_EPOCH;
     }
 
-    time_t base = current_epoch + 60;
+    fastcron_time_t base = current_epoch + 60;
     base -= (base % 60);
 
-    int year, month, day, hour, minute;
+    int year;
+    int month;
+    int day;
+    int hour;
+    int minute;
     epoch_to_fields(base, &year, &month, &day, &hour, &minute);
 
     for (int guard = 0; guard < FASTCRON_MAX_ITERATIONS; guard++)
@@ -186,6 +197,7 @@ time_t fastcron_get_next_wakeup(const FastCron_t *mask, time_t current_epoch)
             month  = find_next_bit32((uint32_t)mask->months, 1);
             if (month < 0)
             {
+                // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
                 return FASTCRON_ERROR_EPOCH;
             }
             day    = 1;
@@ -230,7 +242,7 @@ time_t fastcron_get_next_wakeup(const FastCron_t *mask, time_t current_epoch)
         }
 
         int dow = day_of_week(year, month, day);
-        if (((mask->days_of_week >> dow) & 1U) == 0U)
+        if ((((uint32_t)mask->days_of_week >> (uint32_t)dow) & 1U) == 0U)
         {
             day++;
             hour   = 0;
@@ -262,6 +274,7 @@ time_t fastcron_get_next_wakeup(const FastCron_t *mask, time_t current_epoch)
         }
 
         minute = mn;
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return tm_to_epoch(year, month, day, hour, minute);
     }
 
@@ -274,7 +287,7 @@ time_t fastcron_get_next_wakeup(const FastCron_t *mask, time_t current_epoch)
 
 bool fastcron_sleep(
     const FastCron_t *mask,
-    time_t tv_sec,
+    fastcron_time_t tv_sec,
     uint32_t tv_usec,
     uint32_t *seconds,
     uint64_t *mili_seconds,
@@ -282,21 +295,24 @@ bool fastcron_sleep(
 {
     if (mask == NULL)
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return false;
     }
 
-    time_t next = fastcron_get_next_wakeup(mask, tv_sec);
+    fastcron_time_t next = fastcron_get_next_wakeup(mask, tv_sec);
     if (next == FASTCRON_ERROR_EPOCH)
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return false;
     }
 
     if (next <= tv_sec)
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return false;
     }
 
-    uint32_t whole_s = (uint32_t)(next - tv_sec);
+    uint32_t whole_s = (uint32_t)((uint64_t)next - (uint64_t)tv_sec);
 
     if (seconds != NULL)
     {
@@ -333,24 +349,25 @@ bool fastcron_sleep(
 size_t fastcron_scheduler(
     const FastCron_t *crons,
     size_t crons_size,
-    time_t current_epoch,
+    fastcron_time_t current_epoch,
     FastCron_t *schedules,
     size_t schedules_size)
 {
-    if (crons == NULL || crons_size == 0)
+    if ((crons == NULL) || (crons_size == 0U))
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return 0;
     }
 
-    time_t min_wakeup = FASTCRON_ERROR_EPOCH;
+    fastcron_time_t min_wakeup = FASTCRON_ERROR_EPOCH;
 
     /* Step 1: Find the minimum wakeup time across all crons */
     for (size_t i = 0; i < crons_size; i++)
     {
-        time_t next = fastcron_get_next_wakeup(&crons[i], current_epoch);
-        if (next != FASTCRON_ERROR_EPOCH && next > current_epoch)
+        fastcron_time_t next = fastcron_get_next_wakeup(&crons[i], current_epoch);
+        if ((next != FASTCRON_ERROR_EPOCH) && (next > current_epoch))
         {
-            if (min_wakeup == FASTCRON_ERROR_EPOCH || next < min_wakeup)
+            if ((min_wakeup == FASTCRON_ERROR_EPOCH) || (next < min_wakeup))
             {
                 min_wakeup = next;
             }
@@ -359,6 +376,7 @@ size_t fastcron_scheduler(
 
     if (min_wakeup == FASTCRON_ERROR_EPOCH)
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return 0;
     }
 
@@ -367,10 +385,10 @@ size_t fastcron_scheduler(
     /* Step 2: Collect all crons that trigger at min_wakeup */
     for (size_t i = 0; i < crons_size; i++)
     {
-        time_t next = fastcron_get_next_wakeup(&crons[i], current_epoch);
+        fastcron_time_t next = fastcron_get_next_wakeup(&crons[i], current_epoch);
         if (next == min_wakeup)
         {
-            if (schedules != NULL && match_count < schedules_size)
+            if ((schedules != NULL) && (match_count < schedules_size))
             {
                 schedules[match_count] = crons[i];
             }
