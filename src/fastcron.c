@@ -13,28 +13,28 @@
  * Portable bit-scan intrinsics
  * ----------------------------------------------------------------------- */
 
-static inline int ctz64(uint64_t v)
+static inline int ctz64(uint64_t val)
 {
-    uint64_t val = v;
+    uint64_t v = val;
     int n = 0;
-    if ((val & 0x00000000FFFFFFFFULL) == 0U) { n += 32; val >>= 32; }
-    if ((val & 0x000000000000FFFFULL) == 0U) { n += 16; val >>= 16; }
-    if ((val & 0x00000000000000FFULL) == 0U) { n +=  8; val >>=  8; }
-    if ((val & 0x000000000000000FULL) == 0U) { n +=  4; val >>=  4; }
-    if ((val & 0x0000000000000003ULL) == 0U) { n +=  2; val >>=  2; }
-    if ((val & 0x0000000000000001ULL) == 0U) { n +=  1; }
+    if ((v & 0x00000000FFFFFFFFULL) == 0U) { n += 32; v >>= 32; }
+    if ((v & 0x000000000000FFFFULL) == 0U) { n += 16; v >>= 16; }
+    if ((v & 0x00000000000000FFULL) == 0U) { n +=  8; v >>=  8; }
+    if ((v & 0x000000000000000FULL) == 0U) { n +=  4; v >>=  4; }
+    if ((v & 0x0000000000000003ULL) == 0U) { n +=  2; v >>=  2; }
+    if ((v & 0x0000000000000001ULL) == 0U) { n +=  1; }
     return n;
 }
 
-static inline int ctz32(uint32_t v)
+static inline int ctz32(uint32_t val)
 {
-    uint32_t val = v;
+    uint32_t v = val;
     int n = 0;
-    if ((val & 0x0000FFFFU) == 0U) { n += 16; val >>= 16; }
-    if ((val & 0x000000FFU) == 0U) { n +=  8; val >>=  8; }
-    if ((val & 0x0000000FU) == 0U) { n +=  4; val >>=  4; }
-    if ((val & 0x00000003U) == 0U) { n +=  2; val >>=  2; }
-    if ((val & 0x00000001U) == 0U) { n +=  1; }
+    if ((v & 0x0000FFFFU) == 0U) { n += 16; v >>= 16; }
+    if ((v & 0x000000FFU) == 0U) { n +=  8; v >>=  8; }
+    if ((v & 0x0000000FU) == 0U) { n +=  4; v >>=  4; }
+    if ((v & 0x00000003U) == 0U) { n +=  2; v >>=  2; }
+    if ((v & 0x00000001U) == 0U) { n +=  1; }
     return n;
 }
 
@@ -177,7 +177,11 @@ time_t fastcron_get_next_wakeup(const FastCron_t *mask, time_t current_epoch)
     time_t base = current_epoch + 60;
     base -= (base % 60);
 
-    int year, month, day, hour, minute;
+    int year;
+    int month;
+    int day;
+    int hour;
+    int minute;
     epoch_to_fields(base, &year, &month, &day, &hour, &minute);
 
     for (int guard = 0; guard < FASTCRON_MAX_ITERATIONS; guard++)
