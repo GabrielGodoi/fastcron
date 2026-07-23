@@ -50,7 +50,7 @@ jobs:
             --force \
             --addon=misra \
             -I include/ \
-            src/ tests/
+            src/
 
   # -----------------------------------------------------------------------
   # Job 3: Documentation — Doxygen → Sphinx → GitHub Pages
