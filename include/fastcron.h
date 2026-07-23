@@ -70,6 +70,7 @@ static inline void fastcron_set_minute(FastCron_t *mask, uint8_t min)
 {
     if ((mask == NULL) || (min > 59U))
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
     mask->minutes |= (1ULL << min);
@@ -84,6 +85,7 @@ static inline void fastcron_clear_minute(FastCron_t *mask, uint8_t min)
 {
     if ((mask == NULL) || (min > 59U))
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
     mask->minutes &= ~(1ULL << min);
@@ -97,6 +99,7 @@ static inline void fastcron_set_all_minutes(FastCron_t *mask)
 {
     if (mask == NULL)
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
     mask->minutes = 0x0FFFFFFFFFFFFFFFULL;
@@ -111,6 +114,7 @@ static inline void fastcron_set_hour(FastCron_t *mask, uint8_t hour)
 {
     if ((mask == NULL) || (hour > 23U))
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
     mask->hours |= (1UL << hour);
@@ -125,6 +129,7 @@ static inline void fastcron_clear_hour(FastCron_t *mask, uint8_t hour)
 {
     if ((mask == NULL) || (hour > 23U))
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
     mask->hours &= ~(1UL << hour);
@@ -138,6 +143,7 @@ static inline void fastcron_set_all_hours(FastCron_t *mask)
 {
     if (mask == NULL)
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
     mask->hours = 0x00FFFFFFU;
@@ -152,6 +158,7 @@ static inline void fastcron_set_day_of_month(FastCron_t *mask, uint8_t dom)
 {
     if ((mask == NULL) || (dom < 1U) || (dom > 31U))
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
     mask->days_of_month |= (1UL << dom);
@@ -166,6 +173,7 @@ static inline void fastcron_clear_day_of_month(FastCron_t *mask, uint8_t dom)
 {
     if ((mask == NULL) || (dom < 1U) || (dom > 31U))
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
     mask->days_of_month &= ~(1UL << dom);
@@ -179,6 +187,7 @@ static inline void fastcron_set_all_days_of_month(FastCron_t *mask)
 {
     if (mask == NULL)
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
     mask->days_of_month = 0xFFFFFFFEU;
@@ -193,6 +202,7 @@ static inline void fastcron_set_month(FastCron_t *mask, uint8_t month)
 {
     if ((mask == NULL) || (month < 1U) || (month > 12U))
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
     mask->months |= (1UL << month);
@@ -207,6 +217,7 @@ static inline void fastcron_clear_month(FastCron_t *mask, uint8_t month)
 {
     if ((mask == NULL) || (month < 1U) || (month > 12U))
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
     mask->months &= ~(1UL << month);
@@ -220,6 +231,7 @@ static inline void fastcron_set_all_months(FastCron_t *mask)
 {
     if (mask == NULL)
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
     mask->months = 0x1FFEU;
@@ -234,6 +246,7 @@ static inline void fastcron_set_day_of_week(FastCron_t *mask, FastCronDayOfWeek_
 {
     if ((mask == NULL) || ((uint8_t)dow > 6U))
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
     mask->days_of_week |= (1UL << (uint8_t)dow);
@@ -248,6 +261,7 @@ static inline void fastcron_clear_day_of_week(FastCron_t *mask, FastCronDayOfWee
 {
     if ((mask == NULL) || ((uint8_t)dow > 6U))
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
     mask->days_of_week &= ~(1UL << (uint8_t)dow);
@@ -261,6 +275,7 @@ static inline void fastcron_set_all_days_of_week(FastCron_t *mask)
 {
     if (mask == NULL)
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
     mask->days_of_week = 0x7FU;

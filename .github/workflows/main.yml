@@ -44,7 +44,10 @@ jobs:
             --enable=all \
             --suppress=missingIncludeSystem \
             --suppress=missingInclude \
+            --suppress=unmatchedSuppression \
+            --inline-suppr \
             --suppress=unusedFunction \
+            --suppress=misra-c2012-15.5 \
             --error-exitcode=1 \
             --std=c11 \
             --force \

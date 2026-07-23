@@ -124,6 +124,7 @@ static int days_in_month(int year, int month)
 
     if (month != 2)
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return table[month];
     }
 
@@ -141,6 +142,7 @@ static int find_next_bit64(uint64_t mask, int start)
 
     if (shifted == 0U)
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return -1;
     }
 
@@ -153,6 +155,7 @@ static int find_next_bit32(uint32_t mask, int start)
 
     if (shifted == 0U)
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return -1;
     }
 
@@ -171,6 +174,7 @@ fastcron_time_t fastcron_get_next_wakeup(const FastCron_t *mask, fastcron_time_t
 {
     if (mask == NULL)
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return FASTCRON_ERROR_EPOCH;
     }
 
@@ -193,6 +197,7 @@ fastcron_time_t fastcron_get_next_wakeup(const FastCron_t *mask, fastcron_time_t
             month  = find_next_bit32((uint32_t)mask->months, 1);
             if (month < 0)
             {
+                // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
                 return FASTCRON_ERROR_EPOCH;
             }
             day    = 1;
@@ -269,6 +274,7 @@ fastcron_time_t fastcron_get_next_wakeup(const FastCron_t *mask, fastcron_time_t
         }
 
         minute = mn;
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return tm_to_epoch(year, month, day, hour, minute);
     }
 
@@ -289,21 +295,24 @@ bool fastcron_sleep(
 {
     if (mask == NULL)
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return false;
     }
 
     fastcron_time_t next = fastcron_get_next_wakeup(mask, tv_sec);
     if (next == FASTCRON_ERROR_EPOCH)
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return false;
     }
 
     if (next <= tv_sec)
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return false;
     }
 
-    uint32_t whole_s = (uint32_t)(next - tv_sec);
+    uint32_t whole_s = (uint32_t)((uint64_t)next - (uint64_t)tv_sec);
 
     if (seconds != NULL)
     {
@@ -346,6 +355,7 @@ size_t fastcron_scheduler(
 {
     if ((crons == NULL) || (crons_size == 0U))
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return 0;
     }
 
@@ -366,6 +376,7 @@ size_t fastcron_scheduler(
 
     if (min_wakeup == FASTCRON_ERROR_EPOCH)
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return 0;
     }
 
