@@ -48,6 +48,7 @@ jobs:
             --error-exitcode=1 \
             --std=c11 \
             --force \
+            --addon=misra \
             -I include/ \
             src/ tests/
 
