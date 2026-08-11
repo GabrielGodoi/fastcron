@@ -357,46 +357,40 @@ size_t fastcron_scheduler(
     FastCron_t *schedules,
     size_t schedules_size)
 {
-    if ((crons == NULL) || (crons_size == 0U))
-    {
-        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
-        return 0;
-    }
-
-    fastcron_time_t min_wakeup = FASTCRON_ERROR_EPOCH;
-
-    /* Step 1: Find the minimum wakeup time across all crons */
-    for (size_t i = 0; i < crons_size; i++)
-    {
-        fastcron_time_t next = fastcron_get_next_wakeup(&crons[i], current_epoch);
-        if ((next != FASTCRON_ERROR_EPOCH) && (next > current_epoch))
-        {
-            if ((min_wakeup == FASTCRON_ERROR_EPOCH) || (next < min_wakeup))
-            {
-                min_wakeup = next;
-            }
-        }
-    }
-
-    if (min_wakeup == FASTCRON_ERROR_EPOCH)
-    {
-        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
-        return 0;
-    }
-
     size_t match_count = 0;
 
-    /* Step 2: Collect all crons that trigger at min_wakeup */
-    for (size_t i = 0; i < crons_size; i++)
+    if ((crons != NULL) && (crons_size > 0U))
     {
-        fastcron_time_t next = fastcron_get_next_wakeup(&crons[i], current_epoch);
-        if (next == min_wakeup)
+        fastcron_time_t min_wakeup = FASTCRON_ERROR_EPOCH;
+
+        /* Step 1: Find the minimum wakeup time across all crons */
+        for (size_t i = 0; i < crons_size; i++)
         {
-            if ((schedules != NULL) && (match_count < schedules_size))
+            fastcron_time_t next = fastcron_get_next_wakeup(&crons[i], current_epoch);
+            if ((next != FASTCRON_ERROR_EPOCH) && (next > current_epoch))
             {
-                schedules[match_count] = crons[i];
+                if ((min_wakeup == FASTCRON_ERROR_EPOCH) || (next < min_wakeup))
+                {
+                    min_wakeup = next;
+                }
             }
-            match_count++;
+        }
+
+        if (min_wakeup != FASTCRON_ERROR_EPOCH)
+        {
+            /* Step 2: Collect all crons that trigger at min_wakeup */
+            for (size_t i = 0; i < crons_size; i++)
+            {
+                fastcron_time_t next = fastcron_get_next_wakeup(&crons[i], current_epoch);
+                if (next == min_wakeup)
+                {
+                    if ((schedules != NULL) && (match_count < schedules_size))
+                    {
+                        schedules[match_count] = crons[i];
+                    }
+                    match_count++;
+                }
+            }
         }
     }
 
