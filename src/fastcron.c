@@ -121,15 +121,19 @@ static int day_of_week(int year, int month, int day)
 static int days_in_month(int year, int month)
 {
     static const int table[13] = { 0, 31, 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31 };
+    int result;
 
     if (month != 2)
     {
-        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
-        return table[month];
+        result = table[month];
+    }
+    else
+    {
+        bool leap = ((year % 4) == 0) && (((year % 100) != 0) || ((year % 400) == 0));
+        result = leap ? 29 : 28;
     }
 
-    bool leap = ((year % 4) == 0) && (((year % 100) != 0) || ((year % 400) == 0));
-    return leap ? 29 : 28;
+    return result;
 }
 
 /* -----------------------------------------------------------------------
