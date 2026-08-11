@@ -143,27 +143,35 @@ static int days_in_month(int year, int month)
 static int find_next_bit64(uint64_t mask, int start)
 {
     uint64_t shifted = mask >> (uint32_t)start;
+    int result;
 
     if (shifted == 0U)
     {
-        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
-        return -1;
+        result = -1;
+    }
+    else
+    {
+        result = start + ctz64(shifted);
     }
 
-    return start + ctz64(shifted);
+    return result;
 }
 
 static int find_next_bit32(uint32_t mask, int start)
 {
     uint32_t shifted = mask >> (uint32_t)start;
+    int result;
 
     if (shifted == 0U)
     {
-        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
-        return -1;
+        result = -1;
+    }
+    else
+    {
+        result = start + ctz32(shifted);
     }
 
-    return start + ctz32(shifted);
+    return result;
 }
 
 /* -----------------------------------------------------------------------
@@ -297,57 +305,49 @@ bool fastcron_sleep(
     uint64_t *mili_seconds,
     uint64_t *micro_seconds)
 {
-    if (mask == NULL)
+    bool result = false;
+
+    if (mask != NULL)
     {
-        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
-        return false;
-    }
-
-    fastcron_time_t next = fastcron_get_next_wakeup(mask, tv_sec);
-    if (next == FASTCRON_ERROR_EPOCH)
-    {
-        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
-        return false;
-    }
-
-    if (next <= tv_sec)
-    {
-        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
-        return false;
-    }
-
-    uint32_t whole_s = (uint32_t)((uint64_t)next - (uint64_t)tv_sec);
-
-    if (seconds != NULL)
-    {
-        *seconds = whole_s;
-    }
-
-    if (mili_seconds != NULL)
-    {
-        uint64_t whole_ms = (uint64_t)whole_s * 1000U;
-        uint64_t sub_ms   = (uint64_t)tv_usec / 1000U;
-
-        *mili_seconds = 0U;
-        if (whole_ms > sub_ms)
+        fastcron_time_t next = fastcron_get_next_wakeup(mask, tv_sec);
+        if ((next != FASTCRON_ERROR_EPOCH) && (next > tv_sec))
         {
-            *mili_seconds = whole_ms - sub_ms;
+            uint32_t whole_s = (uint32_t)((uint64_t)next - (uint64_t)tv_sec);
+
+            if (seconds != NULL)
+            {
+                *seconds = whole_s;
+            }
+
+            if (mili_seconds != NULL)
+            {
+                uint64_t whole_ms = (uint64_t)whole_s * 1000U;
+                uint64_t sub_ms   = (uint64_t)tv_usec / 1000U;
+
+                *mili_seconds = 0U;
+                if (whole_ms > sub_ms)
+                {
+                    *mili_seconds = whole_ms - sub_ms;
+                }
+            }
+
+            if (micro_seconds != NULL)
+            {
+                uint64_t whole_us = (uint64_t)whole_s * 1000000U;
+                uint64_t sub_us   = (uint64_t)tv_usec;
+
+                *micro_seconds = 0U;
+                if (whole_us > sub_us)
+                {
+                    *micro_seconds = whole_us - sub_us;
+                }
+            }
+
+            result = true;
         }
     }
 
-    if (micro_seconds != NULL)
-    {
-        uint64_t whole_us = (uint64_t)whole_s * 1000000U;
-        uint64_t sub_us   = (uint64_t)tv_usec;
-
-        *micro_seconds = 0U;
-        if (whole_us > sub_us)
-        {
-            *micro_seconds = whole_us - sub_us;
-        }
-    }
-
-    return true;
+    return result;
 }
 
 size_t fastcron_scheduler(
