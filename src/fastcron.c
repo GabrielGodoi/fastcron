@@ -182,6 +182,8 @@ static int find_next_bit32(uint32_t mask, int start)
  * carry into the next-higher field.
  * ----------------------------------------------------------------------- */
 
+#ifndef FASTCRON_STRICT_MISRA
+
 fastcron_time_t fastcron_get_next_wakeup(const FastCron_t *mask, fastcron_time_t current_epoch)
 {
     if (mask == NULL)
@@ -292,6 +294,130 @@ fastcron_time_t fastcron_get_next_wakeup(const FastCron_t *mask, fastcron_time_t
 
     return FASTCRON_ERROR_EPOCH;
 }
+
+#else /* FASTCRON_STRICT_MISRA */
+
+fastcron_time_t fastcron_get_next_wakeup(const FastCron_t *mask, fastcron_time_t current_epoch)
+{
+    fastcron_time_t result = FASTCRON_ERROR_EPOCH;
+
+    if (mask != NULL)
+    {
+        fastcron_time_t base = current_epoch + 60;
+        base -= (base % 60);
+
+        int year;
+        int month;
+        int day;
+        int hour;
+        int minute;
+        epoch_to_fields(base, &year, &month, &day, &hour, &minute);
+
+        bool exit_loop = false;
+
+        for (int guard = 0; (guard < FASTCRON_MAX_ITERATIONS) && (!exit_loop); guard++)
+        {
+            int m = find_next_bit32((uint32_t)mask->months, month);
+            if (m < 0)
+            {
+                year++;
+                month = find_next_bit32((uint32_t)mask->months, 1);
+                if (month < 0)
+                {
+                    exit_loop = true;
+                }
+                else
+                {
+                    day    = 1;
+                    hour   = 0;
+                    minute = 0;
+                }
+            }
+            else
+            {
+                if (m != month)
+                {
+                    month  = m;
+                    day    = 1;
+                    hour   = 0;
+                    minute = 0;
+                }
+
+                int dim = days_in_month(year, month);
+                if (day > dim)
+                {
+                    month++;
+                    day    = 1;
+                    hour   = 0;
+                    minute = 0;
+                }
+                else
+                {
+                    int d = find_next_bit32(mask->days_of_month, day);
+                    if ((d < 0) || (d > dim))
+                    {
+                        month++;
+                        day    = 1;
+                        hour   = 0;
+                        minute = 0;
+                    }
+                    else
+                    {
+                        if (d != day)
+                        {
+                            day    = d;
+                            hour   = 0;
+                            minute = 0;
+                        }
+
+                        int dow = day_of_week(year, month, day);
+                        if ((((uint32_t)mask->days_of_week >> (uint32_t)dow) & 1U) == 0U)
+                        {
+                            day++;
+                            hour   = 0;
+                            minute = 0;
+                        }
+                        else
+                        {
+                            int h = find_next_bit32(mask->hours, hour);
+                            if (h < 0)
+                            {
+                                day++;
+                                hour   = 0;
+                                minute = 0;
+                            }
+                            else
+                            {
+                                if (h != hour)
+                                {
+                                    hour   = h;
+                                    minute = 0;
+                                }
+
+                                int mn = find_next_bit64(mask->minutes, minute);
+                                if (mn < 0)
+                                {
+                                    hour++;
+                                    minute = 0;
+                                }
+                                else
+                                {
+                                    minute = mn;
+                                    result = tm_to_epoch(year, month, day, hour, minute);
+                                    exit_loop = true;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    return result;
+}
+
+#endif /* FASTCRON_STRICT_MISRA */
 
 /* -----------------------------------------------------------------------
  * Sleep helpers
