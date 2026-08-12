@@ -13,6 +13,11 @@ if [ ! -f sdkconfig ]; then
     idf.py set-target esp32
 fi
 
+if [ "$FASTCRON_MISRA_MODE" = "ON" ]; then
+    echo "Enabling STRICT MISRA via EXTRA_CFLAGS"
+    export EXTRA_CFLAGS="-DFASTCRON_STRICT_MISRA"
+fi
+
 # Build the project
 idf.py build
 

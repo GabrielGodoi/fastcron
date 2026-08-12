@@ -130,7 +130,14 @@ static int days_in_month(int year, int month)
     else
     {
         bool leap = ((year % 4) == 0) && (((year % 100) != 0) || ((year % 400) == 0));
-        result = leap ? 29 : 28;
+        if (leap)
+        {
+            result = 29;
+        }
+        else
+        {
+            result = 28;
+        }
     }
 
     return result;
