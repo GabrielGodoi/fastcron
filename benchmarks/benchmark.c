@@ -6,6 +6,23 @@
 #include "fastcron.h"
 #include "ccronexpr.h"
 
+#ifdef ESP_PLATFORM
+#include "xtensa/core-macros.h"
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
+
+static inline uint64_t get_bench_time(void) {
+    return (uint64_t)XTHAL_GET_CCOUNT();
+}
+#else
+static inline uint64_t get_bench_time(void) {
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (uint64_t)ts.tv_sec * 1000000000ULL + ts.tv_nsec;
+}
+#endif
+
+#ifndef ESP_PLATFORM
 void compileAndMeasureFootprint(void)
 {
     printf("========================================\n");
@@ -38,8 +55,9 @@ void compileAndMeasureFootprint(void)
     
     printf("\n");
 }
+#endif
 
-uint64_t benchmarkFastCronResolution(fastcron_time_t baseEpoch, uint32_t iterations)
+uint64_t benchmarkFastCronResolution(time_t baseEpoch, uint32_t iterations)
 {
     FastCron_t schedule =
     {
@@ -51,12 +69,12 @@ uint64_t benchmarkFastCronResolution(fastcron_time_t baseEpoch, uint32_t iterati
     };
 
     uint64_t totalElapsedNs = 0;
-    volatile fastcron_time_t accumulator = 0;
+    volatile time_t accumulator = 0;
     uint32_t chunkSize = iterations / 100;
 
     for (uint32_t p = 0; p <= 100; p++)
     {
-        printf("\r[FastCron]  Running O(1) engine... %3d%%", p);
+        printf("\r[FastCron]  Running O(1) engine... %3d%%", (int)p);
         fflush(stdout);
 
         if (p == 100)
@@ -64,24 +82,24 @@ uint64_t benchmarkFastCronResolution(fastcron_time_t baseEpoch, uint32_t iterati
             break;
         }
 
-        struct timespec chunkStart;
-        if (clock_gettime(CLOCK_MONOTONIC, &chunkStart) != 0)
-        {
-            return 0;
-        }
-
+        uint64_t chunkStart = get_bench_time();
         for (uint32_t i = 0; i < chunkSize; i++)
         {
             accumulator += fastcron_get_next_wakeup(&schedule, baseEpoch + (p * chunkSize) + i);
         }
+        uint64_t chunkEnd = get_bench_time();
+        
+        // Handle 32-bit overflow safely if it happened (only matters for ESP32 CCOUNT, but we casted to 64-bit so we just mask)
+        uint64_t diff = (chunkEnd - chunkStart) & 0xFFFFFFFFULL;
+        #ifndef ESP_PLATFORM
+        diff = chunkEnd - chunkStart;
+        #endif
+        
+        totalElapsedNs += diff;
 
-        struct timespec chunkEnd;
-        if (clock_gettime(CLOCK_MONOTONIC, &chunkEnd) != 0)
-        {
-            return 0;
-        }
-
-        totalElapsedNs += (chunkEnd.tv_sec - chunkStart.tv_sec) * 1000000000ULL + (chunkEnd.tv_nsec - chunkStart.tv_nsec);
+#ifdef ESP_PLATFORM
+        vTaskDelay(1);
+#endif
     }
     printf("\n");
 
@@ -93,7 +111,7 @@ uint64_t benchmarkFastCronResolution(fastcron_time_t baseEpoch, uint32_t iterati
     return totalElapsedNs / iterations;
 }
 
-uint64_t benchmarkCcronexprResolution(fastcron_time_t baseEpoch, uint32_t iterations)
+uint64_t benchmarkCcronexprResolution(time_t baseEpoch, uint32_t iterations)
 {
     cron_expr expr;
     const char* error = NULL;
@@ -106,12 +124,12 @@ uint64_t benchmarkCcronexprResolution(fastcron_time_t baseEpoch, uint32_t iterat
     }
 
     uint64_t totalElapsedNs = 0;
-    volatile fastcron_time_t accumulator = 0;
+    volatile time_t accumulator = 0;
     uint32_t chunkSize = iterations / 100;
 
     for (uint32_t p = 0; p <= 100; p++)
     {
-        printf("\r[ccronexpr] Running O(N) arrays... %3d%%", p);
+        printf("\r[ccronexpr] Running O(N) arrays... %3d%%", (int)p);
         fflush(stdout);
 
         if (p == 100)
@@ -119,24 +137,19 @@ uint64_t benchmarkCcronexprResolution(fastcron_time_t baseEpoch, uint32_t iterat
             break;
         }
 
-        struct timespec chunkStart;
-        if (clock_gettime(CLOCK_MONOTONIC, &chunkStart) != 0)
-        {
-            return 0;
-        }
-
+        uint64_t chunkStart = get_bench_time();
         for (uint32_t i = 0; i < chunkSize; i++)
         {
             accumulator += cron_next(&expr, baseEpoch + (p * chunkSize) + i);
         }
-
-        struct timespec chunkEnd;
-        if (clock_gettime(CLOCK_MONOTONIC, &chunkEnd) != 0)
-        {
-            return 0;
-        }
-
-        totalElapsedNs += (chunkEnd.tv_sec - chunkStart.tv_sec) * 1000000000ULL + (chunkEnd.tv_nsec - chunkStart.tv_nsec);
+        uint64_t chunkEnd = get_bench_time();
+        
+        uint64_t diff = (chunkEnd - chunkStart) & 0xFFFFFFFFULL;
+        #ifndef ESP_PLATFORM
+        diff = chunkEnd - chunkStart;
+        #endif
+        
+        totalElapsedNs += diff;
     }
     printf("\n");
 
@@ -148,7 +161,7 @@ uint64_t benchmarkCcronexprResolution(fastcron_time_t baseEpoch, uint32_t iterat
     return totalElapsedNs / iterations;
 }
 
-uint64_t benchmarkFastCronScheduler(fastcron_time_t baseEpoch, uint32_t iterations)
+uint64_t benchmarkFastCronScheduler(time_t baseEpoch, uint32_t iterations)
 {
     #define SCHEDULER_CRONS_COUNT 100
     FastCron_t crons[SCHEDULER_CRONS_COUNT];
@@ -167,23 +180,24 @@ uint64_t benchmarkFastCronScheduler(fastcron_time_t baseEpoch, uint32_t iteratio
 
     for (uint32_t p = 0; p <= 100; p++)
     {
-        printf("\r[Scheduler] Running array iteration... %3d%%", p);
+        printf("\r[Scheduler] Running array iteration... %3d%%", (int)p);
         fflush(stdout);
 
         if (p == 100) break;
 
-        struct timespec chunkStart;
-        if (clock_gettime(CLOCK_MONOTONIC, &chunkStart) != 0) return 0;
-
+        uint64_t chunkStart = get_bench_time();
         for (uint32_t i = 0; i < chunkSize; i++)
         {
             accumulator += fastcron_scheduler(crons, SCHEDULER_CRONS_COUNT, baseEpoch + (p * chunkSize) + i, schedules_out, SCHEDULER_CRONS_COUNT);
         }
+        uint64_t chunkEnd = get_bench_time();
 
-        struct timespec chunkEnd;
-        if (clock_gettime(CLOCK_MONOTONIC, &chunkEnd) != 0) return 0;
-
-        totalElapsedNs += (chunkEnd.tv_sec - chunkStart.tv_sec) * 1000000000ULL + (chunkEnd.tv_nsec - chunkStart.tv_nsec);
+        uint64_t diff = (chunkEnd - chunkStart) & 0xFFFFFFFFULL;
+        #ifndef ESP_PLATFORM
+        diff = chunkEnd - chunkStart;
+        #endif
+        
+        totalElapsedNs += diff;
     }
     printf("\n");
 
@@ -192,15 +206,24 @@ uint64_t benchmarkFastCronScheduler(fastcron_time_t baseEpoch, uint32_t iteratio
     return totalElapsedNs / iterations;
 }
 
+#ifdef ESP_PLATFORM
+int run_benchmarks(void)
+#else
 int main(void)
+#endif
 {
+#ifndef ESP_PLATFORM
     compileAndMeasureFootprint();
+#else
+    // Delay for ESP32 monitor to catch up
+    vTaskDelay(pdMS_TO_TICKS(1000));
+#endif
 
     printf("========================================\n");
     printf("Head-to-Head Performance Benchmark (1,000,000 runs)\n");
     printf("========================================\n");
 
-    fastcron_time_t baseEpoch = 1704067200LL;
+    time_t baseEpoch = 1704067200LL;
     uint32_t iterations = 1000000;
 
     uint64_t fastCronNs = benchmarkFastCronResolution(baseEpoch, iterations);
@@ -221,9 +244,17 @@ int main(void)
         return 1;
     }
 
-    printf("FastCron  (O(1) bit-scan)  : %llu ns per iteration\n", (unsigned long long)fastCronNs);
-    printf("ccronexpr (O(N) array loop): %llu ns per iteration\n", (unsigned long long)ccronNs);
-    printf("FastCron Scheduler (10 crons): %llu ns per iteration\n", (unsigned long long)schedulerNs);
+#ifdef ESP_PLATFORM
+    const char* unit = "CPU cycles";
+#else
+    const char* unit = "ns";
+#endif
+
+    printf("FastCron  (O(1) bit-scan)  : %llu %s per iteration\n", (unsigned long long)fastCronNs, unit);
+    printf("ccronexpr (O(N) array loop): %llu %s per iteration\n", (unsigned long long)ccronNs, unit);
+    printf("FastCron Scheduler (10 crons): %llu %s per iteration\n", (unsigned long long)schedulerNs, unit);
+    
+    printf("\n--- END OF BENCHMARK ---\n");
 
     return 0;
 }
