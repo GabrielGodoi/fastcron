@@ -11,6 +11,7 @@ set(CMAKE_C_EXTENSIONS OFF)
 
 option(FASTCRON_BUILD_TESTS "Build unit tests" ON)
 option(FASTCRON_BUILD_DOCS  "Build documentation" OFF)
+option(FASTCRON_STRICT_MISRA "Build with strictly MISRA 15.5 compliant logic" OFF)
 
 # ---------------------------------------------------------------------------
 # Core Library
@@ -30,6 +31,10 @@ target_compile_options(fastcron PRIVATE
     $<$<C_COMPILER_ID:Clang>:-Wall -Wextra -Wpedantic -Werror>
     $<$<C_COMPILER_ID:MSVC>:/W4 /WX>
 )
+
+if(FASTCRON_STRICT_MISRA)
+    target_compile_definitions(fastcron PUBLIC FASTCRON_STRICT_MISRA)
+endif()
 
 # ---------------------------------------------------------------------------
 # Tests (Unity Framework via FetchContent)

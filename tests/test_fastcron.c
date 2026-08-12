@@ -15,7 +15,7 @@ void tearDown(void) {}
  * Helper: pure-math epoch builder (mirrors the internal tm_to_epoch)
  * ----------------------------------------------------------------------- */
 
-static time_t make_epoch(int year, int month, int day, int hour, int minute)
+static fastcron_time_t make_epoch(int year, int month, int day, int hour, int minute)
 {
     int y = year;
     int m = month;
@@ -30,10 +30,10 @@ static time_t make_epoch(int year, int month, int day, int hour, int minute)
     days += (306 * (m + 1)) / 10 + day - 428;
     days -= 719163;
 
-    return (time_t)((days * 86400LL) + (hour * 3600LL) + (minute * 60LL));
+    return (fastcron_time_t)((days * 86400LL) + (hour * 3600LL) + (minute * 60LL));
 }
 
-static void epoch_to_cal(time_t epoch, int *year, int *month, int *day,
+static void epoch_to_cal(fastcron_time_t epoch, int *year, int *month, int *day,
                           int *hour, int *minute)
 {
     int64_t s   = (int64_t)epoch;
@@ -98,7 +98,7 @@ static FastCron_t every_minute(void)
 
 void test_null_mask_returns_error(void)
 {
-    TEST_ASSERT_EQUAL_INT64((time_t)-1, fastcron_get_next_wakeup(NULL, 0));
+    TEST_ASSERT_EQUAL_INT64((fastcron_time_t)-1, fastcron_get_next_wakeup(NULL, 0));
     TEST_ASSERT_FALSE(fastcron_sleep(NULL, 0, 0, NULL, NULL, NULL));
 }
 
@@ -110,8 +110,8 @@ void test_every_minute_next_is_close(void)
 {
     FastCron_t mask = every_minute();
 
-    time_t now  = make_epoch(2024, 6, 15, 10, 30);
-    time_t next = fastcron_get_next_wakeup(&mask, now);
+    fastcron_time_t now  = make_epoch(2024, 6, 15, 10, 30);
+    fastcron_time_t next = fastcron_get_next_wakeup(&mask, now);
 
     TEST_ASSERT_TRUE(next > now);
     TEST_ASSERT_TRUE((next - now) <= 120);
@@ -133,8 +133,8 @@ void test_specific_hour_minute(void)
         .days_of_week  = ALL_DOW,
     };
 
-    time_t now  = make_epoch(2024, 1, 1, 10, 0);
-    time_t next = fastcron_get_next_wakeup(&mask, now);
+    fastcron_time_t now  = make_epoch(2024, 1, 1, 10, 0);
+    fastcron_time_t next = fastcron_get_next_wakeup(&mask, now);
 
     int y, mo, d, h, mn;
     epoch_to_cal(next, &y, &mo, &d, &h, &mn);
@@ -161,8 +161,8 @@ void test_past_time_rolls_to_next_day(void)
         .days_of_week  = ALL_DOW,
     };
 
-    time_t now  = make_epoch(2024, 3, 10, 9, 0);
-    time_t next = fastcron_get_next_wakeup(&mask, now);
+    fastcron_time_t now  = make_epoch(2024, 3, 10, 9, 0);
+    fastcron_time_t next = fastcron_get_next_wakeup(&mask, now);
 
     int y, mo, d, h, mn;
     epoch_to_cal(next, &y, &mo, &d, &h, &mn);
@@ -188,8 +188,8 @@ void test_weekday_constraint_skips_weekend(void)
         .days_of_week  = BIT8(1) | BIT8(2) | BIT8(3) | BIT8(4) | BIT8(5),
     };
 
-    time_t sat  = make_epoch(2024, 1, 6, 12, 0);
-    time_t next = fastcron_get_next_wakeup(&mask, sat);
+    fastcron_time_t sat  = make_epoch(2024, 1, 6, 12, 0);
+    fastcron_time_t next = fastcron_get_next_wakeup(&mask, sat);
 
     int y, mo, d, h, mn;
     epoch_to_cal(next, &y, &mo, &d, &h, &mn);
@@ -214,8 +214,8 @@ void test_month_rollover(void)
         .days_of_week  = ALL_DOW,
     };
 
-    time_t jan  = make_epoch(2024, 1, 15, 0, 0);
-    time_t next = fastcron_get_next_wakeup(&mask, jan);
+    fastcron_time_t jan  = make_epoch(2024, 1, 15, 0, 0);
+    fastcron_time_t next = fastcron_get_next_wakeup(&mask, jan);
 
     int y, mo, d, h, mn;
     epoch_to_cal(next, &y, &mo, &d, &h, &mn);
@@ -242,8 +242,8 @@ void test_year_rollover(void)
         .days_of_week  = ALL_DOW,
     };
 
-    time_t dec26 = make_epoch(2024, 12, 26, 0, 0);
-    time_t next  = fastcron_get_next_wakeup(&mask, dec26);
+    fastcron_time_t dec26 = make_epoch(2024, 12, 26, 0, 0);
+    fastcron_time_t next  = fastcron_get_next_wakeup(&mask, dec26);
 
     int y, mo, d, h, mn;
     epoch_to_cal(next, &y, &mo, &d, &h, &mn);
@@ -268,8 +268,8 @@ void test_every_15_minutes(void)
         .days_of_week  = ALL_DOW,
     };
 
-    time_t now  = make_epoch(2024, 6, 1, 10, 16);
-    time_t next = fastcron_get_next_wakeup(&mask, now);
+    fastcron_time_t now  = make_epoch(2024, 6, 1, 10, 16);
+    fastcron_time_t next = fastcron_get_next_wakeup(&mask, now);
 
     int y, mo, d, h, mn;
     epoch_to_cal(next, &y, &mo, &d, &h, &mn);
@@ -292,8 +292,8 @@ void test_leap_year_feb29(void)
         .days_of_week  = ALL_DOW,
     };
 
-    time_t jan  = make_epoch(2024, 1, 1, 0, 0);
-    time_t next = fastcron_get_next_wakeup(&mask, jan);
+    fastcron_time_t jan  = make_epoch(2024, 1, 1, 0, 0);
+    fastcron_time_t next = fastcron_get_next_wakeup(&mask, jan);
 
     int y, mo, d, h, mn;
     epoch_to_cal(next, &y, &mo, &d, &h, &mn);
@@ -311,7 +311,7 @@ void test_sleep_s_positive(void)
 {
     FastCron_t mask = every_minute();
 
-    time_t now = make_epoch(2024, 6, 15, 10, 30);
+    fastcron_time_t now = make_epoch(2024, 6, 15, 10, 30);
     uint32_t s = 0;
     bool res = fastcron_sleep(&mask, now, 0, &s, NULL, NULL);
 
@@ -328,7 +328,7 @@ void test_sleep_ms_sub_second_offset(void)
 {
     FastCron_t mask = every_minute();
 
-    time_t tv_sec   = make_epoch(2024, 6, 15, 10, 30);
+    fastcron_time_t tv_sec   = make_epoch(2024, 6, 15, 10, 30);
     uint32_t tv_usec = 500000;
 
     uint64_t ms = 0;
@@ -354,7 +354,7 @@ void test_sleep_us_is_finer(void)
 {
     FastCron_t mask = every_minute();
 
-    time_t tv_sec   = make_epoch(2024, 6, 15, 10, 30);
+    fastcron_time_t tv_sec   = make_epoch(2024, 6, 15, 10, 30);
     uint32_t tv_usec = 123456;
 
     uint64_t us = 0;
@@ -381,7 +381,7 @@ void test_sleep_exact_values(void)
     fastcron_set_all_days_of_week(&mask);
 
     // Current time: 2024-06-15 10:00:00 UTC
-    time_t tv_sec = make_epoch(2024, 6, 15, 10, 0);
+    fastcron_time_t tv_sec = make_epoch(2024, 6, 15, 10, 0);
     uint32_t tv_usec = 250000; // 0.25 seconds
 
     // Next wakeup: 2024-06-15 14:30:00 UTC
@@ -409,7 +409,7 @@ void test_sleep_exact_values(void)
 
 void test_epoch_sanity_check(void)
 {
-    time_t epoch = make_epoch(2024, 1, 1, 0, 0);
+    fastcron_time_t epoch = make_epoch(2024, 1, 1, 0, 0);
     TEST_ASSERT_EQUAL_INT64(1704067200LL, epoch);
 }
 

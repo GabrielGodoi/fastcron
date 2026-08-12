@@ -15,11 +15,14 @@ jobs:
       - name: Install Build Tools (For local act simulator)
         run: sudo apt-get update && sudo apt-get install -y cmake build-essential
 
-      - name: Configure CMake
-        run: cmake -B build -DCMAKE_BUILD_TYPE=Release -DFASTCRON_BUILD_TESTS=ON
+      - name: Build & Test (Standard Mode)
+        run: |
+          cmake -B build_std -DCMAKE_BUILD_TYPE=Release -DFASTCRON_BUILD_TESTS=ON -DFASTCRON_STRICT_MISRA=OFF
+          cmake --build build_std --config Release
+          ctest --test-dir build_std --output-on-failure -C Release
 
-      - name: Build
-        run: cmake --build build --config Release
-
-      - name: Run Tests
-        run: ctest --test-dir build --output-on-failure -C Release
+      - name: Build & Test (MISRA Mode)
+        run: |
+          cmake -B build_misra -DCMAKE_BUILD_TYPE=Release -DFASTCRON_BUILD_TESTS=ON -DFASTCRON_STRICT_MISRA=ON
+          cmake --build build_misra --config Release
+          ctest --test-dir build_misra --output-on-failure -C Release

@@ -16,13 +16,13 @@ int main(void)
 
     printf("Schedule Configured: 14:30 on Mondays, Wednesdays, and Fridays.\n\n");
 
-    time_t currentEpoch = time(NULL);
+    fastcron_time_t currentEpoch = time(NULL);
 
     for (int i = 0; i < 5; i++)
     {
-        time_t nextWakeup = fastcron_get_next_wakeup(&schedule, currentEpoch);
+        fastcron_time_t nextWakeup = fastcron_get_next_wakeup(&schedule, currentEpoch);
 
-        if (nextWakeup == (time_t)-1)
+        if (nextWakeup == (fastcron_time_t)-1)
         {
             printf("Error calculating next wakeup.\n");
             return 1;

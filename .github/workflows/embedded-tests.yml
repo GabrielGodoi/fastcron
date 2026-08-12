@@ -18,7 +18,16 @@ jobs:
           apt-get update && apt-get install -y libgcrypt20 libglib2.0-0 libpixman-1-0 libsdl2-2.0-0 libslirp0
           python $IDF_PATH/tools/idf_tools.py install qemu-xtensa qemu-riscv32
 
-      - name: Run QEMU Tests
+      - name: Run QEMU Tests (Standard Mode)
+        env:
+          FASTCRON_MISRA_MODE: OFF
+        run: |
+          . $IDF_PATH/export.sh
+          bash docker/run_qemu.sh
+
+      - name: Run QEMU Tests (MISRA Mode)
+        env:
+          FASTCRON_MISRA_MODE: ON
         run: |
           . $IDF_PATH/export.sh
           bash docker/run_qemu.sh

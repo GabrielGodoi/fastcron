@@ -39,7 +39,7 @@ void compileAndMeasureFootprint(void)
     printf("\n");
 }
 
-uint64_t benchmarkFastCronResolution(time_t baseEpoch, uint32_t iterations)
+uint64_t benchmarkFastCronResolution(fastcron_time_t baseEpoch, uint32_t iterations)
 {
     FastCron_t schedule =
     {
@@ -51,7 +51,7 @@ uint64_t benchmarkFastCronResolution(time_t baseEpoch, uint32_t iterations)
     };
 
     uint64_t totalElapsedNs = 0;
-    volatile time_t accumulator = 0;
+    volatile fastcron_time_t accumulator = 0;
     uint32_t chunkSize = iterations / 100;
 
     for (uint32_t p = 0; p <= 100; p++)
@@ -93,7 +93,7 @@ uint64_t benchmarkFastCronResolution(time_t baseEpoch, uint32_t iterations)
     return totalElapsedNs / iterations;
 }
 
-uint64_t benchmarkCcronexprResolution(time_t baseEpoch, uint32_t iterations)
+uint64_t benchmarkCcronexprResolution(fastcron_time_t baseEpoch, uint32_t iterations)
 {
     cron_expr expr;
     const char* error = NULL;
@@ -106,7 +106,7 @@ uint64_t benchmarkCcronexprResolution(time_t baseEpoch, uint32_t iterations)
     }
 
     uint64_t totalElapsedNs = 0;
-    volatile time_t accumulator = 0;
+    volatile fastcron_time_t accumulator = 0;
     uint32_t chunkSize = iterations / 100;
 
     for (uint32_t p = 0; p <= 100; p++)
@@ -148,7 +148,7 @@ uint64_t benchmarkCcronexprResolution(time_t baseEpoch, uint32_t iterations)
     return totalElapsedNs / iterations;
 }
 
-uint64_t benchmarkFastCronScheduler(time_t baseEpoch, uint32_t iterations)
+uint64_t benchmarkFastCronScheduler(fastcron_time_t baseEpoch, uint32_t iterations)
 {
     #define SCHEDULER_CRONS_COUNT 100
     FastCron_t crons[SCHEDULER_CRONS_COUNT];
@@ -200,7 +200,7 @@ int main(void)
     printf("Head-to-Head Performance Benchmark (1,000,000 runs)\n");
     printf("========================================\n");
 
-    time_t baseEpoch = 1704067200LL;
+    fastcron_time_t baseEpoch = 1704067200LL;
     uint32_t iterations = 1000000;
 
     uint64_t fastCronNs = benchmarkFastCronResolution(baseEpoch, iterations);

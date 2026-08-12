@@ -15,7 +15,9 @@
 
 #include <stdint.h>
 #include <stdbool.h>
-#include <time.h>
+#include <stddef.h>
+
+typedef int64_t fastcron_time_t;
 
 #ifdef __cplusplus
 extern "C"
@@ -66,8 +68,9 @@ typedef struct
  */
 static inline void fastcron_set_minute(FastCron_t *mask, uint8_t min)
 {
-    if (mask == NULL || min > 59)
+    if ((mask == NULL) || (min > 59U))
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
     mask->minutes |= (1ULL << min);
@@ -80,8 +83,9 @@ static inline void fastcron_set_minute(FastCron_t *mask, uint8_t min)
  */
 static inline void fastcron_clear_minute(FastCron_t *mask, uint8_t min)
 {
-    if (mask == NULL || min > 59)
+    if ((mask == NULL) || (min > 59U))
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
     mask->minutes &= ~(1ULL << min);
@@ -95,6 +99,7 @@ static inline void fastcron_set_all_minutes(FastCron_t *mask)
 {
     if (mask == NULL)
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
     mask->minutes = 0x0FFFFFFFFFFFFFFFULL;
@@ -107,11 +112,12 @@ static inline void fastcron_set_all_minutes(FastCron_t *mask)
  */
 static inline void fastcron_set_hour(FastCron_t *mask, uint8_t hour)
 {
-    if (mask == NULL || hour > 23)
+    if ((mask == NULL) || (hour > 23U))
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
-    mask->hours |= (1U << hour);
+    mask->hours |= (1UL << hour);
 }
 
 /**
@@ -121,11 +127,12 @@ static inline void fastcron_set_hour(FastCron_t *mask, uint8_t hour)
  */
 static inline void fastcron_clear_hour(FastCron_t *mask, uint8_t hour)
 {
-    if (mask == NULL || hour > 23)
+    if ((mask == NULL) || (hour > 23U))
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
-    mask->hours &= ~(1U << hour);
+    mask->hours &= ~(1UL << hour);
 }
 
 /**
@@ -136,6 +143,7 @@ static inline void fastcron_set_all_hours(FastCron_t *mask)
 {
     if (mask == NULL)
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
     mask->hours = 0x00FFFFFFU;
@@ -148,11 +156,12 @@ static inline void fastcron_set_all_hours(FastCron_t *mask)
  */
 static inline void fastcron_set_day_of_month(FastCron_t *mask, uint8_t dom)
 {
-    if (mask == NULL || dom < 1 || dom > 31)
+    if ((mask == NULL) || (dom < 1U) || (dom > 31U))
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
-    mask->days_of_month |= (1U << dom);
+    mask->days_of_month |= (1UL << dom);
 }
 
 /**
@@ -162,11 +171,12 @@ static inline void fastcron_set_day_of_month(FastCron_t *mask, uint8_t dom)
  */
 static inline void fastcron_clear_day_of_month(FastCron_t *mask, uint8_t dom)
 {
-    if (mask == NULL || dom < 1 || dom > 31)
+    if ((mask == NULL) || (dom < 1U) || (dom > 31U))
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
-    mask->days_of_month &= ~(1U << dom);
+    mask->days_of_month &= ~(1UL << dom);
 }
 
 /**
@@ -177,6 +187,7 @@ static inline void fastcron_set_all_days_of_month(FastCron_t *mask)
 {
     if (mask == NULL)
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
     mask->days_of_month = 0xFFFFFFFEU;
@@ -189,11 +200,12 @@ static inline void fastcron_set_all_days_of_month(FastCron_t *mask)
  */
 static inline void fastcron_set_month(FastCron_t *mask, uint8_t month)
 {
-    if (mask == NULL || month < 1 || month > 12)
+    if ((mask == NULL) || (month < 1U) || (month > 12U))
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
-    mask->months |= (1U << month);
+    mask->months |= (1UL << month);
 }
 
 /**
@@ -203,11 +215,12 @@ static inline void fastcron_set_month(FastCron_t *mask, uint8_t month)
  */
 static inline void fastcron_clear_month(FastCron_t *mask, uint8_t month)
 {
-    if (mask == NULL || month < 1 || month > 12)
+    if ((mask == NULL) || (month < 1U) || (month > 12U))
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
-    mask->months &= ~(1U << month);
+    mask->months &= ~(1UL << month);
 }
 
 /**
@@ -218,6 +231,7 @@ static inline void fastcron_set_all_months(FastCron_t *mask)
 {
     if (mask == NULL)
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
     mask->months = 0x1FFEU;
@@ -230,11 +244,12 @@ static inline void fastcron_set_all_months(FastCron_t *mask)
  */
 static inline void fastcron_set_day_of_week(FastCron_t *mask, FastCronDayOfWeek_t dow)
 {
-    if (mask == NULL || (uint8_t)dow > 6)
+    if ((mask == NULL) || ((uint8_t)dow > 6U))
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
-    mask->days_of_week |= (1U << (uint8_t)dow);
+    mask->days_of_week |= (1UL << (uint8_t)dow);
 }
 
 /**
@@ -244,11 +259,12 @@ static inline void fastcron_set_day_of_week(FastCron_t *mask, FastCronDayOfWeek_
  */
 static inline void fastcron_clear_day_of_week(FastCron_t *mask, FastCronDayOfWeek_t dow)
 {
-    if (mask == NULL || (uint8_t)dow > 6)
+    if ((mask == NULL) || ((uint8_t)dow > 6U))
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
-    mask->days_of_week &= ~(1U << (uint8_t)dow);
+    mask->days_of_week &= ~(1UL << (uint8_t)dow);
 }
 
 /**
@@ -259,6 +275,7 @@ static inline void fastcron_set_all_days_of_week(FastCron_t *mask)
 {
     if (mask == NULL)
     {
+        // cppcheck-suppress misra-c2012-15.5 ; Justification: Readability
         return;
     }
     mask->days_of_week = 0x7FU;
@@ -272,9 +289,9 @@ static inline void fastcron_set_all_days_of_week(FastCron_t *mask)
  *
  * @param[in] mask          Pre-populated bitmask schedule.
  * @param[in] current_epoch Current UNIX timestamp (UTC).
- * @return    Next matching epoch (always > current_epoch), or (time_t)-1 on error.
+ * @return    Next matching epoch (always > current_epoch), or (fastcron_time_t)-1 on error.
  */
-time_t fastcron_get_next_wakeup(const FastCron_t *mask, time_t current_epoch);
+fastcron_time_t fastcron_get_next_wakeup(const FastCron_t *mask, fastcron_time_t current_epoch);
 
 /**
  * @brief Unified sleep duration until the next cron event.
@@ -293,7 +310,7 @@ time_t fastcron_get_next_wakeup(const FastCron_t *mask, time_t current_epoch);
  */
 bool fastcron_sleep(
     const FastCron_t *mask,
-    time_t tv_sec,
+    fastcron_time_t tv_sec,
     uint32_t tv_usec,
     uint32_t *seconds,
     uint64_t *mili_seconds,
@@ -322,7 +339,7 @@ bool fastcron_sleep(
 size_t fastcron_scheduler(
     const FastCron_t *crons,
     size_t crons_size,
-    time_t current_epoch,
+    fastcron_time_t current_epoch,
     FastCron_t *schedules,
     size_t schedules_size
 );

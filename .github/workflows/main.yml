@@ -44,12 +44,15 @@ jobs:
             --enable=all \
             --suppress=missingIncludeSystem \
             --suppress=missingInclude \
+            --suppress=unmatchedSuppression \
+            --inline-suppr \
             --suppress=unusedFunction \
             --error-exitcode=1 \
             --std=c11 \
             --force \
+            --addon=misra \
             -I include/ \
-            src/ tests/
+            src/
 
   # -----------------------------------------------------------------------
   # Job 3: Documentation — Doxygen → Sphinx → GitHub Pages

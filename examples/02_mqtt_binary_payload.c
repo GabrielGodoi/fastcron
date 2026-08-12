@@ -18,10 +18,10 @@ void handleMqttPayload(const uint8_t* payload, size_t length)
     FastCron_t schedule;
     memcpy(&schedule, payload, sizeof(FastCron_t));
 
-    time_t currentEpoch = 1704067200LL;
-    time_t nextWakeup = fastcron_get_next_wakeup(&schedule, currentEpoch);
+    fastcron_time_t currentEpoch = 1704067200LL;
+    fastcron_time_t nextWakeup = fastcron_get_next_wakeup(&schedule, currentEpoch);
 
-    if (nextWakeup == (time_t)-1)
+    if (nextWakeup == (fastcron_time_t)-1)
     {
         return;
     }
