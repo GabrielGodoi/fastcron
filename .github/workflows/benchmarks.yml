@@ -1,0 +1,92 @@
+name: Benchmarks
+
+on:
+  workflow_call:
+    secrets:
+      WOKWI_CLI_TOKEN:
+        required: true
+    outputs:
+      benchmark_report:
+        description: "Formatted Markdown report of the benchmarks"
+        value: ${{ jobs.run-benchmarks.outputs.benchmark_report }}
+
+jobs:
+  run-benchmarks:
+    name: Run Benchmarks
+    runs-on: ubuntu-latest
+    outputs:
+      benchmark_report: ${{ steps.format-report.outputs.report }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Build Test Environment
+        run: docker build -t fastcron-test -f docker/Dockerfile .
+
+      - name: Run Benchmarks via Docker
+        env:
+          WOKWI_CLI_TOKEN: ${{ secrets.WOKWI_CLI_TOKEN }}
+        run: |
+          # Criamos o container sem iniciar (e sem volume mount pra não quebrar no act/DooD)
+          docker create --name bench-container -e WOKWI_CLI_TOKEN="${WOKWI_CLI_TOKEN}" fastcron-test bash -c "
+            cd /workspace
+            echo 'Compiling Native Benchmark...'
+            gcc -Iinclude benchmarks/benchmark.c src/fastcron.c benchmarks/third_party/ccronexpr/ccronexpr.c -o native_bench -Os
+            echo 'Executing Native Benchmark...'
+            ./native_bench 1000000 > native_output.txt
+            
+            echo 'Running ESP32 Benchmark...'
+            bash docker/run_wokwi.sh
+          "
+          
+          # Copiamos todo o repositório para dentro do container
+          docker cp . bench-container:/workspace
+          
+          # Rodamos o container (anexado ao stdout para vermos o log)
+          docker start -a bench-container
+          
+          # Recuperamos os logs gerados de volta para o runner
+          docker cp bench-container:/workspace/native_output.txt ./native_output.txt
+          docker cp bench-container:/workspace/benchmarks/esp32/serial.log ./benchmarks/esp32/serial.log
+          
+          # Limpamos o container
+          docker rm bench-container
+
+      - name: Format Report
+        id: format-report
+        run: |
+          # Extract only the benchmark results from ESP32 log (ignores boot sequence)
+          sed -n '/Head-to-Head Performance Benchmark/,/--- END OF BENCHMARK ---/p' benchmarks/esp32/serial.log | grep -v '--- END OF BENCHMARK ---' > esp32_clean.txt
+          
+          # Clean Native output as well
+          cat native_output.txt | grep -v '--- END OF BENCHMARK ---' > native_clean.txt
+          
+          # Write Markdown to output
+          echo "report<<EOF" >> $GITHUB_OUTPUT
+          echo "### Performance Benchmarks" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "#### Native (x86_64)" >> $GITHUB_OUTPUT
+          echo "\`\`\`text" >> $GITHUB_OUTPUT
+          cat native_clean.txt >> $GITHUB_OUTPUT
+          echo "\`\`\`" >> $GITHUB_OUTPUT
+          echo "" >> $GITHUB_OUTPUT
+          echo "#### ESP32 (Xtensa 240MHz)" >> $GITHUB_OUTPUT
+          echo "\`\`\`text" >> $GITHUB_OUTPUT
+          cat esp32_clean.txt >> $GITHUB_OUTPUT
+          echo "\`\`\`" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          
+          # Also write to Step Summary for visibility in Actions UI
+          cat <<EOF > $GITHUB_STEP_SUMMARY
+          ### Performance Benchmarks
+          
+          #### Native (x86_64)
+          \`\`\`text
+          $(cat native_clean.txt)
+          \`\`\`
+          
+          #### ESP32 (Xtensa 240MHz)
+          \`\`\`text
+          $(cat esp32_clean.txt)
+          \`\`\`
+          EOF
