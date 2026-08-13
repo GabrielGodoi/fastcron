@@ -1,0 +1,12 @@
+# Max CPU Freq for maximum performance metrics
+CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ_240=y
+CONFIG_ESP_DEFAULT_CPU_FREQ_MHZ=240
+
+# Compiler optimizations (O2 / Perf)
+CONFIG_COMPILER_OPTIMIZATION_PERF=y
+
+# Disable Task Watchdog Timer so long O(N) loops don't panic the CPU
+CONFIG_ESP_TASK_WDT_EN=n
+
+# Increase Main Task stack size because ccronexpr allocates huge arrays on the stack
+CONFIG_ESP_MAIN_TASK_STACK_SIZE=8192
