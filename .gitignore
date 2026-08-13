@@ -27,4 +27,5 @@ tests/esp32/sdkconfig.old
 .ENV
 build_docker/
 benchmarks/esp32/build/
+benchmarks/esp32/*.log
 benchmarks/esp32/managed_components/
